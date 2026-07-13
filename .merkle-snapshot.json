@@ -1,0 +1,1336 @@
+{
+  "rootHash": "defc761c06ed4a15c6be19a06ccc9bea1d5b540bb905c0c3b1ba777bb203be74",
+  "timestamp": 1783928123936,
+  "fileCount": 74,
+  "files": [
+    {
+      "path": "frontend\\vite.config.js",
+      "hash": "f81d7fe13ad6694730b1d02ac6ce7c4c9598cabea89bd04fa262c4f0c2dc6b14",
+      "size": 283,
+      "modified": 1783877953926.2798
+    },
+    {
+      "path": "frontend\\src\\App.vue",
+      "hash": "ceb86677e693fe7346af00cc66db8ab57bde104361834fe23bbe2b82aaa9cd52",
+      "size": 42,
+      "modified": 1783877953926.2798
+    },
+    {
+      "path": "frontend\\src\\main.js",
+      "hash": "61678ce59c5df5da9d7262c934fb045f1b838ff4f03281455f1c0c5e14f715ae",
+      "size": 565,
+      "modified": 1783877953926.2798
+    },
+    {
+      "path": "frontend\\src\\views\\Login.vue",
+      "hash": "7022df6f49900bc5e98b85e40d77e925d47cd199667ac9e7f2232bb0d33fab86",
+      "size": 2465,
+      "modified": 1783877953933.2732
+    },
+    {
+      "path": "frontend\\src\\views\\university\\ScoreLineList.vue",
+      "hash": "2d7de1670c629a3670d429c72bfbd6f2d84bfad22c21bee8369a344245412cbd",
+      "size": 4935,
+      "modified": 1783877953934.2732
+    },
+    {
+      "path": "frontend\\src\\views\\university\\UniversityList.vue",
+      "hash": "c2d78747a2bb2434cdfd6e04bb35726cf5ef099a1758007850ff63f857709bc2",
+      "size": 8470,
+      "modified": 1783877953934.2732
+    },
+    {
+      "path": "frontend\\src\\views\\student\\ClassList.vue",
+      "hash": "e67fac28bf7a56f52652dc6de6fea4498c54617dca92df8c9caf44f8b9b12b28",
+      "size": 3819,
+      "modified": 1783877953934.2732
+    },
+    {
+      "path": "frontend\\src\\views\\student\\StudentList.vue",
+      "hash": "8190ec394c4a5fbdc421bd4c5f23e36f6335b1bd36ef40027b107b5938429e1b",
+      "size": 8838,
+      "modified": 1783877953934.2732
+    },
+    {
+      "path": "frontend\\src\\views\\application\\ApplicationForm.vue",
+      "hash": "ade405bd2c1f6bb3e802f5ebf5bab1081341f5e6b1830c21345fd92ee5f0db6d",
+      "size": 9953,
+      "modified": 1783877953934.2732
+    },
+    {
+      "path": "frontend\\src\\views\\admission\\AdmissionProcess.vue",
+      "hash": "4a66157ec9ac586201050cb5063857ad428312df2f0d084260ff307f29d2d7cf",
+      "size": 2843,
+      "modified": 1783877953934.2732
+    },
+    {
+      "path": "frontend\\src\\views\\admission\\AdmissionQuery.vue",
+      "hash": "99600537d558b589d5e1ef8b370d060fe31aa657d9db8c15b43ee9903e91e1b1",
+      "size": 3867,
+      "modified": 1783877953936.2737
+    },
+    {
+      "path": "frontend\\src\\views\\admission\\Dashboard.vue",
+      "hash": "5b2fb660e76920f6e551ba176b7b24d43f1271b7272c59663e97f2a3df04537c",
+      "size": 3399,
+      "modified": 1783877953936.2737
+    },
+    {
+      "path": "frontend\\src\\utils\\request.js",
+      "hash": "714421122eb5daca01e172852f30b473806a22187f2ef2e2d7501026ad1bba16",
+      "size": 2012,
+      "modified": 1783880414531.2356
+    },
+    {
+      "path": "frontend\\src\\stores\\user.js",
+      "hash": "b9bd08170c70ad6662181f5f1138d3ca3fbd5e81058286a6217ac32220c956f1",
+      "size": 1220,
+      "modified": 1783877953926.2798
+    },
+    {
+      "path": "frontend\\src\\router\\index.js",
+      "hash": "6ff27a58105480cbf2bfb5536f77eba81f93a1458047f9401cfdedc95351df52",
+      "size": 1893,
+      "modified": 1783877953926.2798
+    },
+    {
+      "path": "frontend\\src\\layout\\MainLayout.vue",
+      "hash": "f9b186c28d50d8b2d501fa249ffe18c324feb64908db9e22f6ac3030341c48a4",
+      "size": 3744,
+      "modified": 1783877953933.2732
+    },
+    {
+      "path": "frontend\\src\\api\\index.js",
+      "hash": "a68dd7f2006ce22b02aeb41e7b268c5d26b6eb7ffc8a37aae9cab45b3c9c8e0a",
+      "size": 3944,
+      "modified": 1783877953932.273
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\GaokaoApplication.java",
+      "hash": "3f38c194fd7a842703d21af4e40b285475088552e79140238b73c2b7c3ff4dcf",
+      "size": 406,
+      "modified": 1783877953924.2815
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\util\\AuthInterceptor.java",
+      "hash": "0958e528f6cbd88158d586e56dc123a3313eea43a92dd1eae026b2d8d083ea33",
+      "size": 1355,
+      "modified": 1783877953925.2803
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\util\\Result.java",
+      "hash": "6f3be9e39e013a9b4abf60a7346aaa3c1d9c3c3445d5859db903859c59eea504",
+      "size": 741,
+      "modified": 1783877953926.2798
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\service\\AdmissionService.java",
+      "hash": "0b02b649e6c38f7ac0593a0a96416e929ae909522c4240c3d404a0e8fef9ef50",
+      "size": 12393,
+      "modified": 1783877953936.2737
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\service\\ApplicationService.java",
+      "hash": "d3b6683a3b74593169ba8c2c39a1874c99cf9720ebe1ddec38d271c45103fd4c",
+      "size": 6349,
+      "modified": 1783877953935.2727
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\service\\AuthService.java",
+      "hash": "3d8ec6fd1a8aebe34d65e2e666dc3fa2c3c10440cbc86a919236f2aa75825703",
+      "size": 1198,
+      "modified": 1783877953928.2798
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\service\\ClassInfoService.java",
+      "hash": "3561d098f8385a03ac83c2af6338acba0fd61c9204ca4049a60710f4389b6e0d",
+      "size": 1071,
+      "modified": 1783877953934.2732
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\service\\MajorCourseService.java",
+      "hash": "dc27f1778eadcd0165c7f032f9d8356d20a9e26b552d5bbe8e9f5d28f00e7631",
+      "size": 943,
+      "modified": 1783877953936.2737
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\service\\ScoreLineService.java",
+      "hash": "7b46a6c19e46f35c8ff41bf5bb6db4971c02ad9ca0dbd58de617d086e3337e27",
+      "size": 1630,
+      "modified": 1783877953934.2732
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\service\\StudentService.java",
+      "hash": "cf1ea0c7b31d27c061cf231a0cf02692d44abf9900aa504a16948ce11df71aeb",
+      "size": 1859,
+      "modified": 1783877953932.273
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\service\\UniversityService.java",
+      "hash": "3d9b713fd3daf2cc9e3a69973f2a58458d4a336bd9ce8ff02e8d0fbcf84a0e4f",
+      "size": 3157,
+      "modified": 1783877953932.273
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\AdmissionLogMapper.java",
+      "hash": "bdc81cadddc19405dc8a762b73487840f7f30f574a9f88033d89e4ebee3cf95b",
+      "size": 945,
+      "modified": 1783877953932.273
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\AdmissionResultMapper.java",
+      "hash": "9ffcdabe3f3d4083cfb3bcff29d33af0210516a7cb26c556d9d7297ddea107f2",
+      "size": 2905,
+      "modified": 1783877953932.273
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\ApplicationMajorMapper.java",
+      "hash": "5e7c45958390bbfd012482622637cc3da3786dec069a21198d7666811e9025f4",
+      "size": 900,
+      "modified": 1783877953932.273
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\ApplicationMapper.java",
+      "hash": "a37a050f20d8e496474b6c5a3444e983852989fd5f702fe1ab4e0ddcc54483e8",
+      "size": 1668,
+      "modified": 1783877953926.2798
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\ClassInfoMapper.java",
+      "hash": "25b91b6283332bf03981af412a28304e463ab19ff35262a83d2b45ece1466dda",
+      "size": 1644,
+      "modified": 1783877953925.2803
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\DepartmentMapper.java",
+      "hash": "48f86ad8531623cb1246a786af31fd9e531e05edcba5a27d2af02cbe17074e2a",
+      "size": 1291,
+      "modified": 1783877953926.2798
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\InterestCourseMapper.java",
+      "hash": "8bcf0083da25e8667a039c2d1ac7937da2d8f00abb5c11dd0f749b43cf3a209c",
+      "size": 684,
+      "modified": 1783877953926.2798
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\MajorCourseMapper.java",
+      "hash": "0ef8c1a8beb89cd04d706c4e3609bcb9a4d6a6233e1f9f5481db996893f6121b",
+      "size": 639,
+      "modified": 1783877953926.2798
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\MajorMapper.java",
+      "hash": "abf8516b6785f788c19ec0838672fb3e3b9c3d6b3c7f07c61fcfe626a9bed7b7",
+      "size": 2137,
+      "modified": 1783877953926.2798
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\ProvinceMapper.java",
+      "hash": "f6c8befcd69c377fec2bc3c7bf03a76d68472852a6fb88246661b63c85e1d322",
+      "size": 366,
+      "modified": 1783877953926.2798
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\ProvinceQuotaMapper.java",
+      "hash": "14f039afc144a11a694ce45282119b6c5b12dfe3bb3f0ed2065f149db398e9fd",
+      "size": 1411,
+      "modified": 1783877953926.2798
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\ScoreLineMapper.java",
+      "hash": "dc10fa459672870b7be1564f45922fa98378f47493c964f2afa1d61d8d778ab1",
+      "size": 1600,
+      "modified": 1783881148805.6519
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\StudentMapper.java",
+      "hash": "949a7f8f5231a86810ad7d3b0e6687b73275d2a1735dec95746b23b881194903",
+      "size": 2904,
+      "modified": 1783877953926.2798
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\SysUserMapper.java",
+      "hash": "ea0c2120036df1497f7d4a8761af3738fd1c63289bd81bd1d1e638bda397499f",
+      "size": 613,
+      "modified": 1783877953926.2798
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\UniversityMapper.java",
+      "hash": "ca54c0d7d18c64188a61db6f4bb1b0f2c250ec6dd28782ea4f78a1f74771395d",
+      "size": 1707,
+      "modified": 1783877953926.2798
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\UniversityScoreLineMapper.java",
+      "hash": "8c6d0fbb0ed8e7109acf9703922cbafc5c76ea61c7ad53399ba610535af66b69",
+      "size": 1873,
+      "modified": 1783881149824.3225
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\AdmissionLog.java",
+      "hash": "89366783bdc312e47e872a4a93866e0ffe60a4768211e5240787a21dbc306ab9",
+      "size": 427,
+      "modified": 1783877953925.2803
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\AdmissionResult.java",
+      "hash": "8f96043b7493b910d556175b41fe6781deda6ec362d6c668533ca96d7bc045a9",
+      "size": 496,
+      "modified": 1783877953925.2803
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\Application.java",
+      "hash": "50fa0ff8b020abccb77b1bacdaad53f138bf996320ef957a6c5f95da110a13e2",
+      "size": 512,
+      "modified": 1783877953924.2815
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\ApplicationMajor.java",
+      "hash": "edf0d4748055574797aa960f2054982e07ae3f026addc0ab88747b3d932dc9f9",
+      "size": 238,
+      "modified": 1783877953925.2803
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\ClassInfo.java",
+      "hash": "c9593d634dfb90c96003047065c52237e05f6a93ebe2afb4a2cd7f4a092a5b5b",
+      "size": 290,
+      "modified": 1783877953924.2815
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\Department.java",
+      "hash": "b8e8f03fe68d414bf8e5aaafe3068ee5d3445528e50d4a0bfcffe42092e6d0ad",
+      "size": 204,
+      "modified": 1783877953924.2815
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\InterestCourse.java",
+      "hash": "931800178108950b2b612135c01895612dcc93055c7df1ad4acaae8b8806e3e0",
+      "size": 169,
+      "modified": 1783877953925.2803
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\Major.java",
+      "hash": "1f42d6c222c31d4a8ea01bb9ca6df82651c209bf3debbd5ced64853882c930c1",
+      "size": 332,
+      "modified": 1783877953924.2815
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\MajorCourse.java",
+      "hash": "333efbbe9d07330c92753b528090895bf41647926e34825e067ee7629fa44100",
+      "size": 164,
+      "modified": 1783877953924.2815
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\Province.java",
+      "hash": "6cc8e18a7bd459a465ae89443c2c5e8680ff07ad11425ad4a0af0bb5acc0ff19",
+      "size": 134,
+      "modified": 1783877953924.2815
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\ProvinceQuota.java",
+      "hash": "889cfffe1c090aedf784a2011e3ff2981eea7f1ac6836e8373baf7b7551f058d",
+      "size": 263,
+      "modified": 1783877953924.2815
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\ScoreLine.java",
+      "hash": "c5178ae712c54612e923202b138409438e35b63a396ff05788414e654e76d32b",
+      "size": 321,
+      "modified": 1783877953925.2803
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\Student.java",
+      "hash": "56b3d551922e271b6064fc21d6feb5406cad54f396d4b1c6e37074b017da1d2a",
+      "size": 530,
+      "modified": 1783877953924.2815
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\SysUser.java",
+      "hash": "db4eb509dcb2058e4b3b6b866b3c4520158bcf4545e427377234644bc17b660a",
+      "size": 293,
+      "modified": 1783877953925.2803
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\University.java",
+      "hash": "09eb6cdc2dd06830b7c3e26f928cdc1b566a9a5a3af626a1597a36a989129f2e",
+      "size": 253,
+      "modified": 1783877953924.2815
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\UniversityScoreLine.java",
+      "hash": "0e9f90030d81425222b23e4d060623a258d8ced83ced613ec573e5b94d10d63c",
+      "size": 434,
+      "modified": 1783877953924.2815
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\dto\\ApplicationSubmitRequest.java",
+      "hash": "a19151b5c2d97d2e1d294cea82c63c2801c828ed31e01b29b85688ae62d4b7e6",
+      "size": 566,
+      "modified": 1783877953925.2803
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\dto\\DashboardData.java",
+      "hash": "062f1fcaf731dc92f35f93fe2ae3fbaf26735fcdc41c61cc5f1fa439dfb36d30",
+      "size": 588,
+      "modified": 1783877953925.2803
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\dto\\LoginRequest.java",
+      "hash": "d73c672b93805aaa876e9649635066d6f15ec79da72168dbb2722b3eb5ca9a92",
+      "size": 147,
+      "modified": 1783877953925.2803
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\dto\\RecommendResult.java",
+      "hash": "38ca79edc6e20d581cbde11758ad9e6213685ae79d094aa91dd9cfbc3fa99105",
+      "size": 612,
+      "modified": 1783877953926.2798
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\controller\\AdmissionController.java",
+      "hash": "dceaa6ab0995e08cd698ce742fa0682143d7c2a2d25bcc119c853f897e6a4075",
+      "size": 1804,
+      "modified": 1783877953936.2737
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\controller\\ApplicationController.java",
+      "hash": "67dc5b743a38d60450a7a4deb5c9538b74bfd462de826a3f185563a66f72e4d1",
+      "size": 1715,
+      "modified": 1783877953937.2727
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\controller\\AuthController.java",
+      "hash": "0a025d7164dc875092b809111724962583f321f1b0b3b7ccfb37aeaafa5db1c3",
+      "size": 2110,
+      "modified": 1783877953936.2737
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\controller\\ClassInfoController.java",
+      "hash": "80fa56b44542ef89eff782c51638f3e4b52278d4f5fe352b4cb19599f1b02ea3",
+      "size": 1260,
+      "modified": 1783877953936.2737
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\controller\\CommonController.java",
+      "hash": "f36bb56ffd9aec806f2591944bdfc7b4127ef05645c5da170a0a467d6fb64e91",
+      "size": 1243,
+      "modified": 1783877953941.2727
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\controller\\ScoreLineController.java",
+      "hash": "e241f15bf37ee8639f97e42f2d82c6420d830f0ccbf20d5467332e95fa53c2d7",
+      "size": 2312,
+      "modified": 1783877953936.2737
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\controller\\StudentController.java",
+      "hash": "c4b098abc1ba42fea902ac25d38e92dcaff514457ae5a953700ba36ef2d2a9a1",
+      "size": 1934,
+      "modified": 1783877953936.2737
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\controller\\UniversityController.java",
+      "hash": "14038cfe841a15336c7edc44c27bce37bc7f27fff73e5780c02ecc695f4ff388",
+      "size": 3324,
+      "modified": 1783877953936.2737
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\config\\CorsConfig.java",
+      "hash": "b012b24a4a24a7567e077718e8fa54a1ffd1573600d367581b2922a81a623786",
+      "size": 841,
+      "modified": 1783877953924.2815
+    },
+    {
+      "path": "backend\\src\\main\\java\\com\\gaokao\\config\\WebMvcConfig.java",
+      "hash": "ac301f07e0ebfc4539f52daa55bde6f9bc509bf249010ee4db3ac4be40c9e114",
+      "size": 634,
+      "modified": 1783877953924.2815
+    }
+  ],
+  "tree": {
+    "hash": "defc761c06ed4a15c6be19a06ccc9bea1d5b540bb905c0c3b1ba777bb203be74",
+    "left": {
+      "hash": "9b5fb27b66e1e376393a7571c9a97bc2558bfa4393fbe3a20b4ada22af4483a9",
+      "left": {
+        "hash": "a5d450d4deb05f1a714680fcb5b75a9f6b7ad8ee8228fb04d4e1d1d8dd6bcec9",
+        "left": {
+          "hash": "89785a67ca02546eb83e176a4d15f5a1cdb99335e2a72c199c3629d7002e3712",
+          "left": {
+            "hash": "2ed1d2439ee2cddf244c2525ba825993556cbf129d668cb056a453f2226697c6",
+            "left": {
+              "hash": "482d2967fcbd03ddebde61c0ec33a37258357c8223d581fd1dfea32883ad534d",
+              "left": {
+                "hash": "b5af91f8f7d2e730f3596afd6fa44693c54bebcb8f782208ea2ecac025e4cf7b",
+                "left": {
+                  "hash": "b012b24a4a24a7567e077718e8fa54a1ffd1573600d367581b2922a81a623786",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\config\\CorsConfig.java",
+                    "hash": "b012b24a4a24a7567e077718e8fa54a1ffd1573600d367581b2922a81a623786",
+                    "size": 841,
+                    "modified": 1783877953924.2815
+                  }
+                },
+                "right": {
+                  "hash": "ac301f07e0ebfc4539f52daa55bde6f9bc509bf249010ee4db3ac4be40c9e114",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\config\\WebMvcConfig.java",
+                    "hash": "ac301f07e0ebfc4539f52daa55bde6f9bc509bf249010ee4db3ac4be40c9e114",
+                    "size": 634,
+                    "modified": 1783877953924.2815
+                  }
+                }
+              },
+              "right": {
+                "hash": "95da376301101d2e67e3863e88223b13aafc6396285f6ce40902eef599d4a732",
+                "left": {
+                  "hash": "dceaa6ab0995e08cd698ce742fa0682143d7c2a2d25bcc119c853f897e6a4075",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\controller\\AdmissionController.java",
+                    "hash": "dceaa6ab0995e08cd698ce742fa0682143d7c2a2d25bcc119c853f897e6a4075",
+                    "size": 1804,
+                    "modified": 1783877953936.2737
+                  }
+                },
+                "right": {
+                  "hash": "67dc5b743a38d60450a7a4deb5c9538b74bfd462de826a3f185563a66f72e4d1",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\controller\\ApplicationController.java",
+                    "hash": "67dc5b743a38d60450a7a4deb5c9538b74bfd462de826a3f185563a66f72e4d1",
+                    "size": 1715,
+                    "modified": 1783877953937.2727
+                  }
+                }
+              }
+            },
+            "right": {
+              "hash": "b36b0389bcb4d0b82f280376259e7d921d4d897038880bacfb499958ef9a04ce",
+              "left": {
+                "hash": "fa42c19c33f978306de4003c3d344e6dfa3fb0183bd81d717249a02625f72760",
+                "left": {
+                  "hash": "0a025d7164dc875092b809111724962583f321f1b0b3b7ccfb37aeaafa5db1c3",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\controller\\AuthController.java",
+                    "hash": "0a025d7164dc875092b809111724962583f321f1b0b3b7ccfb37aeaafa5db1c3",
+                    "size": 2110,
+                    "modified": 1783877953936.2737
+                  }
+                },
+                "right": {
+                  "hash": "80fa56b44542ef89eff782c51638f3e4b52278d4f5fe352b4cb19599f1b02ea3",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\controller\\ClassInfoController.java",
+                    "hash": "80fa56b44542ef89eff782c51638f3e4b52278d4f5fe352b4cb19599f1b02ea3",
+                    "size": 1260,
+                    "modified": 1783877953936.2737
+                  }
+                }
+              },
+              "right": {
+                "hash": "22efb271aa427c6946aa3d112b113d57e4c347c51f770f4cd1487d7cc39a8e55",
+                "left": {
+                  "hash": "f36bb56ffd9aec806f2591944bdfc7b4127ef05645c5da170a0a467d6fb64e91",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\controller\\CommonController.java",
+                    "hash": "f36bb56ffd9aec806f2591944bdfc7b4127ef05645c5da170a0a467d6fb64e91",
+                    "size": 1243,
+                    "modified": 1783877953941.2727
+                  }
+                },
+                "right": {
+                  "hash": "e241f15bf37ee8639f97e42f2d82c6420d830f0ccbf20d5467332e95fa53c2d7",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\controller\\ScoreLineController.java",
+                    "hash": "e241f15bf37ee8639f97e42f2d82c6420d830f0ccbf20d5467332e95fa53c2d7",
+                    "size": 2312,
+                    "modified": 1783877953936.2737
+                  }
+                }
+              }
+            }
+          },
+          "right": {
+            "hash": "d036a171f9df5105be5b0976048ddd522be54ad45f310827cfe438c3ef49f96d",
+            "left": {
+              "hash": "8c38525b99ab25ad9d78578fb5f2f2b7586d1d9dc2bb8ee1095aab93c10fca70",
+              "left": {
+                "hash": "3d3ac3d367816f2a207033e69d9c780b73e2ad50829761179db274d672f00b82",
+                "left": {
+                  "hash": "c4b098abc1ba42fea902ac25d38e92dcaff514457ae5a953700ba36ef2d2a9a1",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\controller\\StudentController.java",
+                    "hash": "c4b098abc1ba42fea902ac25d38e92dcaff514457ae5a953700ba36ef2d2a9a1",
+                    "size": 1934,
+                    "modified": 1783877953936.2737
+                  }
+                },
+                "right": {
+                  "hash": "14038cfe841a15336c7edc44c27bce37bc7f27fff73e5780c02ecc695f4ff388",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\controller\\UniversityController.java",
+                    "hash": "14038cfe841a15336c7edc44c27bce37bc7f27fff73e5780c02ecc695f4ff388",
+                    "size": 3324,
+                    "modified": 1783877953936.2737
+                  }
+                }
+              },
+              "right": {
+                "hash": "33fd9ac286d6c298843f820e379ac38b38c7efab3200c1a944da13846e327cf5",
+                "left": {
+                  "hash": "a19151b5c2d97d2e1d294cea82c63c2801c828ed31e01b29b85688ae62d4b7e6",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\dto\\ApplicationSubmitRequest.java",
+                    "hash": "a19151b5c2d97d2e1d294cea82c63c2801c828ed31e01b29b85688ae62d4b7e6",
+                    "size": 566,
+                    "modified": 1783877953925.2803
+                  }
+                },
+                "right": {
+                  "hash": "062f1fcaf731dc92f35f93fe2ae3fbaf26735fcdc41c61cc5f1fa439dfb36d30",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\dto\\DashboardData.java",
+                    "hash": "062f1fcaf731dc92f35f93fe2ae3fbaf26735fcdc41c61cc5f1fa439dfb36d30",
+                    "size": 588,
+                    "modified": 1783877953925.2803
+                  }
+                }
+              }
+            },
+            "right": {
+              "hash": "47f6970b6c156a67198d7eba00ea6b98d552d811c18c38c411eea6427ac6551f",
+              "left": {
+                "hash": "44323ae39638e38b5a1df392e354502778b37709d04b4e55ef0769fd1e0eba41",
+                "left": {
+                  "hash": "d73c672b93805aaa876e9649635066d6f15ec79da72168dbb2722b3eb5ca9a92",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\dto\\LoginRequest.java",
+                    "hash": "d73c672b93805aaa876e9649635066d6f15ec79da72168dbb2722b3eb5ca9a92",
+                    "size": 147,
+                    "modified": 1783877953925.2803
+                  }
+                },
+                "right": {
+                  "hash": "38ca79edc6e20d581cbde11758ad9e6213685ae79d094aa91dd9cfbc3fa99105",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\dto\\RecommendResult.java",
+                    "hash": "38ca79edc6e20d581cbde11758ad9e6213685ae79d094aa91dd9cfbc3fa99105",
+                    "size": 612,
+                    "modified": 1783877953926.2798
+                  }
+                }
+              },
+              "right": {
+                "hash": "110f40644637d622ca2ae422577d2e8ad5496e578754e5ba8184249fd75367e5",
+                "left": {
+                  "hash": "89366783bdc312e47e872a4a93866e0ffe60a4768211e5240787a21dbc306ab9",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\AdmissionLog.java",
+                    "hash": "89366783bdc312e47e872a4a93866e0ffe60a4768211e5240787a21dbc306ab9",
+                    "size": 427,
+                    "modified": 1783877953925.2803
+                  }
+                },
+                "right": {
+                  "hash": "8f96043b7493b910d556175b41fe6781deda6ec362d6c668533ca96d7bc045a9",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\AdmissionResult.java",
+                    "hash": "8f96043b7493b910d556175b41fe6781deda6ec362d6c668533ca96d7bc045a9",
+                    "size": 496,
+                    "modified": 1783877953925.2803
+                  }
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "hash": "1672500a706e2014727ccef4e1a0ebce930a8b43e6ded7cbbbdfb6d873d475bf",
+          "left": {
+            "hash": "c67e0e92d0b4483f88c234ce2b0581c3334ed0f84efb389281ba1d94918b360a",
+            "left": {
+              "hash": "9a3c0bdc57e3a2f53445cebcff298f34bddfdff7533b47789c97111aad6cbb1d",
+              "left": {
+                "hash": "b7b1a98de3c2c4f3cf4746f069fc52be7d419d7b89667c192ea3a3c557808be0",
+                "left": {
+                  "hash": "50fa0ff8b020abccb77b1bacdaad53f138bf996320ef957a6c5f95da110a13e2",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\Application.java",
+                    "hash": "50fa0ff8b020abccb77b1bacdaad53f138bf996320ef957a6c5f95da110a13e2",
+                    "size": 512,
+                    "modified": 1783877953924.2815
+                  }
+                },
+                "right": {
+                  "hash": "edf0d4748055574797aa960f2054982e07ae3f026addc0ab88747b3d932dc9f9",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\ApplicationMajor.java",
+                    "hash": "edf0d4748055574797aa960f2054982e07ae3f026addc0ab88747b3d932dc9f9",
+                    "size": 238,
+                    "modified": 1783877953925.2803
+                  }
+                }
+              },
+              "right": {
+                "hash": "7b60908c7bea2b9af7d44849577a6e3b195c388d8705cbff0cacd232f03c67c3",
+                "left": {
+                  "hash": "c9593d634dfb90c96003047065c52237e05f6a93ebe2afb4a2cd7f4a092a5b5b",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\ClassInfo.java",
+                    "hash": "c9593d634dfb90c96003047065c52237e05f6a93ebe2afb4a2cd7f4a092a5b5b",
+                    "size": 290,
+                    "modified": 1783877953924.2815
+                  }
+                },
+                "right": {
+                  "hash": "b8e8f03fe68d414bf8e5aaafe3068ee5d3445528e50d4a0bfcffe42092e6d0ad",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\Department.java",
+                    "hash": "b8e8f03fe68d414bf8e5aaafe3068ee5d3445528e50d4a0bfcffe42092e6d0ad",
+                    "size": 204,
+                    "modified": 1783877953924.2815
+                  }
+                }
+              }
+            },
+            "right": {
+              "hash": "62a660b0007d0cb2689bd99c916658da03b461524e70616e5db346b9f393081c",
+              "left": {
+                "hash": "b30ab6070608d3c50bab00a48446bbefa604ad24827268e5cef63b29aca2778d",
+                "left": {
+                  "hash": "931800178108950b2b612135c01895612dcc93055c7df1ad4acaae8b8806e3e0",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\InterestCourse.java",
+                    "hash": "931800178108950b2b612135c01895612dcc93055c7df1ad4acaae8b8806e3e0",
+                    "size": 169,
+                    "modified": 1783877953925.2803
+                  }
+                },
+                "right": {
+                  "hash": "1f42d6c222c31d4a8ea01bb9ca6df82651c209bf3debbd5ced64853882c930c1",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\Major.java",
+                    "hash": "1f42d6c222c31d4a8ea01bb9ca6df82651c209bf3debbd5ced64853882c930c1",
+                    "size": 332,
+                    "modified": 1783877953924.2815
+                  }
+                }
+              },
+              "right": {
+                "hash": "a665bf8704ac9126cc2fef244f4786e03f8fe0871635daac1f6be70b7b10bd82",
+                "left": {
+                  "hash": "333efbbe9d07330c92753b528090895bf41647926e34825e067ee7629fa44100",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\MajorCourse.java",
+                    "hash": "333efbbe9d07330c92753b528090895bf41647926e34825e067ee7629fa44100",
+                    "size": 164,
+                    "modified": 1783877953924.2815
+                  }
+                },
+                "right": {
+                  "hash": "6cc8e18a7bd459a465ae89443c2c5e8680ff07ad11425ad4a0af0bb5acc0ff19",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\Province.java",
+                    "hash": "6cc8e18a7bd459a465ae89443c2c5e8680ff07ad11425ad4a0af0bb5acc0ff19",
+                    "size": 134,
+                    "modified": 1783877953924.2815
+                  }
+                }
+              }
+            }
+          },
+          "right": {
+            "hash": "671a4dc801fae701f244f4cd7480a8b4c017b1d025f810332ceb208d3fde9aef",
+            "left": {
+              "hash": "99aa757676bb8ea7f2239477981187263ffc4b505ea7acb0dcb10fe410df6148",
+              "left": {
+                "hash": "bfd272212409d3f661ed8ea6984cc79e5179b747c0665de6e07c48afc84289d7",
+                "left": {
+                  "hash": "889cfffe1c090aedf784a2011e3ff2981eea7f1ac6836e8373baf7b7551f058d",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\ProvinceQuota.java",
+                    "hash": "889cfffe1c090aedf784a2011e3ff2981eea7f1ac6836e8373baf7b7551f058d",
+                    "size": 263,
+                    "modified": 1783877953924.2815
+                  }
+                },
+                "right": {
+                  "hash": "c5178ae712c54612e923202b138409438e35b63a396ff05788414e654e76d32b",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\ScoreLine.java",
+                    "hash": "c5178ae712c54612e923202b138409438e35b63a396ff05788414e654e76d32b",
+                    "size": 321,
+                    "modified": 1783877953925.2803
+                  }
+                }
+              },
+              "right": {
+                "hash": "852b379ea4f9f04e11045e50915d9ae54b49e2023e8a586d702b9158ce9cb90d",
+                "left": {
+                  "hash": "56b3d551922e271b6064fc21d6feb5406cad54f396d4b1c6e37074b017da1d2a",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\Student.java",
+                    "hash": "56b3d551922e271b6064fc21d6feb5406cad54f396d4b1c6e37074b017da1d2a",
+                    "size": 530,
+                    "modified": 1783877953924.2815
+                  }
+                },
+                "right": {
+                  "hash": "db4eb509dcb2058e4b3b6b866b3c4520158bcf4545e427377234644bc17b660a",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\SysUser.java",
+                    "hash": "db4eb509dcb2058e4b3b6b866b3c4520158bcf4545e427377234644bc17b660a",
+                    "size": 293,
+                    "modified": 1783877953925.2803
+                  }
+                }
+              }
+            },
+            "right": {
+              "hash": "4975bb83ecc15e3b4ab07b3605de118f57390325e54f9cd3d323de800999518b",
+              "left": {
+                "hash": "a6050c3d9fedb737649bb9222c78938d253531f86c2cfbaa7b402bf75819cf13",
+                "left": {
+                  "hash": "09eb6cdc2dd06830b7c3e26f928cdc1b566a9a5a3af626a1597a36a989129f2e",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\University.java",
+                    "hash": "09eb6cdc2dd06830b7c3e26f928cdc1b566a9a5a3af626a1597a36a989129f2e",
+                    "size": 253,
+                    "modified": 1783877953924.2815
+                  }
+                },
+                "right": {
+                  "hash": "0e9f90030d81425222b23e4d060623a258d8ced83ced613ec573e5b94d10d63c",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\entity\\UniversityScoreLine.java",
+                    "hash": "0e9f90030d81425222b23e4d060623a258d8ced83ced613ec573e5b94d10d63c",
+                    "size": 434,
+                    "modified": 1783877953924.2815
+                  }
+                }
+              },
+              "right": {
+                "hash": "446afe08f90ac212aae5c2d71bd661e68fc4122c2536fba4c83d231d2689340b",
+                "left": {
+                  "hash": "3f38c194fd7a842703d21af4e40b285475088552e79140238b73c2b7c3ff4dcf",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\GaokaoApplication.java",
+                    "hash": "3f38c194fd7a842703d21af4e40b285475088552e79140238b73c2b7c3ff4dcf",
+                    "size": 406,
+                    "modified": 1783877953924.2815
+                  }
+                },
+                "right": {
+                  "hash": "bdc81cadddc19405dc8a762b73487840f7f30f574a9f88033d89e4ebee3cf95b",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\AdmissionLogMapper.java",
+                    "hash": "bdc81cadddc19405dc8a762b73487840f7f30f574a9f88033d89e4ebee3cf95b",
+                    "size": 945,
+                    "modified": 1783877953932.273
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "right": {
+        "hash": "751e1ee30464eef2c13e8dce1af75bc17dac1e6045481f86eeb8db77e09e69e9",
+        "left": {
+          "hash": "af2a7841407852b111bab4c90ed1219a24012ca3145353dea15f7339b2969d30",
+          "left": {
+            "hash": "f7d07ddb440ff2899e497eb755ac19fdd4b1f626116f83c135789709938f5f35",
+            "left": {
+              "hash": "3e92260474965d484fa724b7a43a117e728a94fa6c23ab9e560dd7120aaefcdf",
+              "left": {
+                "hash": "1cb0f32d09f1b8bee461f0bb7ff7dae5efce70be7dbca5343c2958a6c8b616a0",
+                "left": {
+                  "hash": "9ffcdabe3f3d4083cfb3bcff29d33af0210516a7cb26c556d9d7297ddea107f2",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\AdmissionResultMapper.java",
+                    "hash": "9ffcdabe3f3d4083cfb3bcff29d33af0210516a7cb26c556d9d7297ddea107f2",
+                    "size": 2905,
+                    "modified": 1783877953932.273
+                  }
+                },
+                "right": {
+                  "hash": "5e7c45958390bbfd012482622637cc3da3786dec069a21198d7666811e9025f4",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\ApplicationMajorMapper.java",
+                    "hash": "5e7c45958390bbfd012482622637cc3da3786dec069a21198d7666811e9025f4",
+                    "size": 900,
+                    "modified": 1783877953932.273
+                  }
+                }
+              },
+              "right": {
+                "hash": "9894ea0c8b374600071253597b960105e853e4b049d96f9c98a447f2f8e51f69",
+                "left": {
+                  "hash": "a37a050f20d8e496474b6c5a3444e983852989fd5f702fe1ab4e0ddcc54483e8",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\ApplicationMapper.java",
+                    "hash": "a37a050f20d8e496474b6c5a3444e983852989fd5f702fe1ab4e0ddcc54483e8",
+                    "size": 1668,
+                    "modified": 1783877953926.2798
+                  }
+                },
+                "right": {
+                  "hash": "25b91b6283332bf03981af412a28304e463ab19ff35262a83d2b45ece1466dda",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\ClassInfoMapper.java",
+                    "hash": "25b91b6283332bf03981af412a28304e463ab19ff35262a83d2b45ece1466dda",
+                    "size": 1644,
+                    "modified": 1783877953925.2803
+                  }
+                }
+              }
+            },
+            "right": {
+              "hash": "6de726ac2d976beb8d42f722701ffb341359787c242d25c06f5334a8f678e1f3",
+              "left": {
+                "hash": "1ab68bf4c3986cb1d3f13ace0dcb32c0e7c237e003deab3a0b2c1cc160ffcfe0",
+                "left": {
+                  "hash": "48f86ad8531623cb1246a786af31fd9e531e05edcba5a27d2af02cbe17074e2a",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\DepartmentMapper.java",
+                    "hash": "48f86ad8531623cb1246a786af31fd9e531e05edcba5a27d2af02cbe17074e2a",
+                    "size": 1291,
+                    "modified": 1783877953926.2798
+                  }
+                },
+                "right": {
+                  "hash": "8bcf0083da25e8667a039c2d1ac7937da2d8f00abb5c11dd0f749b43cf3a209c",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\InterestCourseMapper.java",
+                    "hash": "8bcf0083da25e8667a039c2d1ac7937da2d8f00abb5c11dd0f749b43cf3a209c",
+                    "size": 684,
+                    "modified": 1783877953926.2798
+                  }
+                }
+              },
+              "right": {
+                "hash": "d4edd99830e1c4204ce7915cb69b8118d76eda32f28335c4556700f405ef60b9",
+                "left": {
+                  "hash": "0ef8c1a8beb89cd04d706c4e3609bcb9a4d6a6233e1f9f5481db996893f6121b",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\MajorCourseMapper.java",
+                    "hash": "0ef8c1a8beb89cd04d706c4e3609bcb9a4d6a6233e1f9f5481db996893f6121b",
+                    "size": 639,
+                    "modified": 1783877953926.2798
+                  }
+                },
+                "right": {
+                  "hash": "abf8516b6785f788c19ec0838672fb3e3b9c3d6b3c7f07c61fcfe626a9bed7b7",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\MajorMapper.java",
+                    "hash": "abf8516b6785f788c19ec0838672fb3e3b9c3d6b3c7f07c61fcfe626a9bed7b7",
+                    "size": 2137,
+                    "modified": 1783877953926.2798
+                  }
+                }
+              }
+            }
+          },
+          "right": {
+            "hash": "b50c372a690fdb5d3b9af566f0d077612a4454239a90e1bbdb5f9f57e059d684",
+            "left": {
+              "hash": "cc52258b38212d1691377514835d12fc8e2f410e608b68599aacac3c1f083e48",
+              "left": {
+                "hash": "b5b604c99342dafedf09f7edb97fe00e030d4543107a36ff4d91be23cb644f54",
+                "left": {
+                  "hash": "f6c8befcd69c377fec2bc3c7bf03a76d68472852a6fb88246661b63c85e1d322",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\ProvinceMapper.java",
+                    "hash": "f6c8befcd69c377fec2bc3c7bf03a76d68472852a6fb88246661b63c85e1d322",
+                    "size": 366,
+                    "modified": 1783877953926.2798
+                  }
+                },
+                "right": {
+                  "hash": "14f039afc144a11a694ce45282119b6c5b12dfe3bb3f0ed2065f149db398e9fd",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\ProvinceQuotaMapper.java",
+                    "hash": "14f039afc144a11a694ce45282119b6c5b12dfe3bb3f0ed2065f149db398e9fd",
+                    "size": 1411,
+                    "modified": 1783877953926.2798
+                  }
+                }
+              },
+              "right": {
+                "hash": "f3edbc889e8996d91268f58999e2ec6fd89f6673a1eca757cfc3be774083b4fb",
+                "left": {
+                  "hash": "dc10fa459672870b7be1564f45922fa98378f47493c964f2afa1d61d8d778ab1",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\ScoreLineMapper.java",
+                    "hash": "dc10fa459672870b7be1564f45922fa98378f47493c964f2afa1d61d8d778ab1",
+                    "size": 1600,
+                    "modified": 1783881148805.6519
+                  }
+                },
+                "right": {
+                  "hash": "949a7f8f5231a86810ad7d3b0e6687b73275d2a1735dec95746b23b881194903",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\StudentMapper.java",
+                    "hash": "949a7f8f5231a86810ad7d3b0e6687b73275d2a1735dec95746b23b881194903",
+                    "size": 2904,
+                    "modified": 1783877953926.2798
+                  }
+                }
+              }
+            },
+            "right": {
+              "hash": "43a47c9d4a636f3bb756d4808e614773b245b34e4b700c0a60daa9a318dcdd2e",
+              "left": {
+                "hash": "17c2c25434b54db193cc8dcf00647dfb1334652d0f27dd1677e02fc69101cccb",
+                "left": {
+                  "hash": "ea0c2120036df1497f7d4a8761af3738fd1c63289bd81bd1d1e638bda397499f",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\SysUserMapper.java",
+                    "hash": "ea0c2120036df1497f7d4a8761af3738fd1c63289bd81bd1d1e638bda397499f",
+                    "size": 613,
+                    "modified": 1783877953926.2798
+                  }
+                },
+                "right": {
+                  "hash": "ca54c0d7d18c64188a61db6f4bb1b0f2c250ec6dd28782ea4f78a1f74771395d",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\UniversityMapper.java",
+                    "hash": "ca54c0d7d18c64188a61db6f4bb1b0f2c250ec6dd28782ea4f78a1f74771395d",
+                    "size": 1707,
+                    "modified": 1783877953926.2798
+                  }
+                }
+              },
+              "right": {
+                "hash": "d2951e5296ed2fa375de3f263b5cad236f46f071eb0676f47cded80fcdb56ac3",
+                "left": {
+                  "hash": "8c6d0fbb0ed8e7109acf9703922cbafc5c76ea61c7ad53399ba610535af66b69",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\mapper\\UniversityScoreLineMapper.java",
+                    "hash": "8c6d0fbb0ed8e7109acf9703922cbafc5c76ea61c7ad53399ba610535af66b69",
+                    "size": 1873,
+                    "modified": 1783881149824.3225
+                  }
+                },
+                "right": {
+                  "hash": "0b02b649e6c38f7ac0593a0a96416e929ae909522c4240c3d404a0e8fef9ef50",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\service\\AdmissionService.java",
+                    "hash": "0b02b649e6c38f7ac0593a0a96416e929ae909522c4240c3d404a0e8fef9ef50",
+                    "size": 12393,
+                    "modified": 1783877953936.2737
+                  }
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "hash": "b17eb801baa41757b6e9f29e7458649fab5e1e62d036a9f5ccde53431e8f7d16",
+          "left": {
+            "hash": "bc58c9c3f627a28faab85a5fc078320a3defb28154ee69870ef65d12fe83f5fd",
+            "left": {
+              "hash": "5db70d6695c1e4605338c1fe2a4233758edce6155ea6c44e3dcb679ba9a61d1f",
+              "left": {
+                "hash": "905df26503e16737df93d83c2de02281d54b4a651867c1ea6a579258317f0b7b",
+                "left": {
+                  "hash": "d3b6683a3b74593169ba8c2c39a1874c99cf9720ebe1ddec38d271c45103fd4c",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\service\\ApplicationService.java",
+                    "hash": "d3b6683a3b74593169ba8c2c39a1874c99cf9720ebe1ddec38d271c45103fd4c",
+                    "size": 6349,
+                    "modified": 1783877953935.2727
+                  }
+                },
+                "right": {
+                  "hash": "3d8ec6fd1a8aebe34d65e2e666dc3fa2c3c10440cbc86a919236f2aa75825703",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\service\\AuthService.java",
+                    "hash": "3d8ec6fd1a8aebe34d65e2e666dc3fa2c3c10440cbc86a919236f2aa75825703",
+                    "size": 1198,
+                    "modified": 1783877953928.2798
+                  }
+                }
+              },
+              "right": {
+                "hash": "5128ab98bb05aac5fccf2fce94864ffd10512a798abe3a3eaeb7802ce43a9f84",
+                "left": {
+                  "hash": "3561d098f8385a03ac83c2af6338acba0fd61c9204ca4049a60710f4389b6e0d",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\service\\ClassInfoService.java",
+                    "hash": "3561d098f8385a03ac83c2af6338acba0fd61c9204ca4049a60710f4389b6e0d",
+                    "size": 1071,
+                    "modified": 1783877953934.2732
+                  }
+                },
+                "right": {
+                  "hash": "dc27f1778eadcd0165c7f032f9d8356d20a9e26b552d5bbe8e9f5d28f00e7631",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\service\\MajorCourseService.java",
+                    "hash": "dc27f1778eadcd0165c7f032f9d8356d20a9e26b552d5bbe8e9f5d28f00e7631",
+                    "size": 943,
+                    "modified": 1783877953936.2737
+                  }
+                }
+              }
+            },
+            "right": {
+              "hash": "cecb1ded7ab9d3fb69254b2df5b40686949d79b68b156b2560d61bd867d5f9fc",
+              "left": {
+                "hash": "4fcd3f62ac67181e788a4b3c2ead524a8b0c9980d16dcc5d75c26b970badf782",
+                "left": {
+                  "hash": "7b46a6c19e46f35c8ff41bf5bb6db4971c02ad9ca0dbd58de617d086e3337e27",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\service\\ScoreLineService.java",
+                    "hash": "7b46a6c19e46f35c8ff41bf5bb6db4971c02ad9ca0dbd58de617d086e3337e27",
+                    "size": 1630,
+                    "modified": 1783877953934.2732
+                  }
+                },
+                "right": {
+                  "hash": "cf1ea0c7b31d27c061cf231a0cf02692d44abf9900aa504a16948ce11df71aeb",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\service\\StudentService.java",
+                    "hash": "cf1ea0c7b31d27c061cf231a0cf02692d44abf9900aa504a16948ce11df71aeb",
+                    "size": 1859,
+                    "modified": 1783877953932.273
+                  }
+                }
+              },
+              "right": {
+                "hash": "a26456710e917654eb64a0b4f1d31fbfe5838c41f91b2e63f981c34ce395551a",
+                "left": {
+                  "hash": "3d9b713fd3daf2cc9e3a69973f2a58458d4a336bd9ce8ff02e8d0fbcf84a0e4f",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\service\\UniversityService.java",
+                    "hash": "3d9b713fd3daf2cc9e3a69973f2a58458d4a336bd9ce8ff02e8d0fbcf84a0e4f",
+                    "size": 3157,
+                    "modified": 1783877953932.273
+                  }
+                },
+                "right": {
+                  "hash": "0958e528f6cbd88158d586e56dc123a3313eea43a92dd1eae026b2d8d083ea33",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\util\\AuthInterceptor.java",
+                    "hash": "0958e528f6cbd88158d586e56dc123a3313eea43a92dd1eae026b2d8d083ea33",
+                    "size": 1355,
+                    "modified": 1783877953925.2803
+                  }
+                }
+              }
+            }
+          },
+          "right": {
+            "hash": "ad20ac5deaf13abcedb4e9135dc2dfa5c3f62a196ba4c33557017dec23bc1892",
+            "left": {
+              "hash": "622ff7683c49401e8b0dd10c0246e204148151b26a272ad0c5b77cc80d3ee3b4",
+              "left": {
+                "hash": "7706b2d0ff30e2093f9d71506972d4604c3b4c16f7b08413bc5fa4fcd5151cb2",
+                "left": {
+                  "hash": "6f3be9e39e013a9b4abf60a7346aaa3c1d9c3c3445d5859db903859c59eea504",
+                  "file": {
+                    "path": "backend\\src\\main\\java\\com\\gaokao\\util\\Result.java",
+                    "hash": "6f3be9e39e013a9b4abf60a7346aaa3c1d9c3c3445d5859db903859c59eea504",
+                    "size": 741,
+                    "modified": 1783877953926.2798
+                  }
+                },
+                "right": {
+                  "hash": "a68dd7f2006ce22b02aeb41e7b268c5d26b6eb7ffc8a37aae9cab45b3c9c8e0a",
+                  "file": {
+                    "path": "frontend\\src\\api\\index.js",
+                    "hash": "a68dd7f2006ce22b02aeb41e7b268c5d26b6eb7ffc8a37aae9cab45b3c9c8e0a",
+                    "size": 3944,
+                    "modified": 1783877953932.273
+                  }
+                }
+              },
+              "right": {
+                "hash": "fe2081007c413a2090433338a7e2a60f41f46d1d1875340e903c5d1daec2ada9",
+                "left": {
+                  "hash": "ceb86677e693fe7346af00cc66db8ab57bde104361834fe23bbe2b82aaa9cd52",
+                  "file": {
+                    "path": "frontend\\src\\App.vue",
+                    "hash": "ceb86677e693fe7346af00cc66db8ab57bde104361834fe23bbe2b82aaa9cd52",
+                    "size": 42,
+                    "modified": 1783877953926.2798
+                  }
+                },
+                "right": {
+                  "hash": "f9b186c28d50d8b2d501fa249ffe18c324feb64908db9e22f6ac3030341c48a4",
+                  "file": {
+                    "path": "frontend\\src\\layout\\MainLayout.vue",
+                    "hash": "f9b186c28d50d8b2d501fa249ffe18c324feb64908db9e22f6ac3030341c48a4",
+                    "size": 3744,
+                    "modified": 1783877953933.2732
+                  }
+                }
+              }
+            },
+            "right": {
+              "hash": "a4b646fa0b429b552975ab30b0cf0977911acbfc22de7c50db4cb010260a78dc",
+              "left": {
+                "hash": "80d335ba2d4342051930bbcc6912d2c262fe6f0fe5b6d42bc8ae245b0dec9ecb",
+                "left": {
+                  "hash": "61678ce59c5df5da9d7262c934fb045f1b838ff4f03281455f1c0c5e14f715ae",
+                  "file": {
+                    "path": "frontend\\src\\main.js",
+                    "hash": "61678ce59c5df5da9d7262c934fb045f1b838ff4f03281455f1c0c5e14f715ae",
+                    "size": 565,
+                    "modified": 1783877953926.2798
+                  }
+                },
+                "right": {
+                  "hash": "6ff27a58105480cbf2bfb5536f77eba81f93a1458047f9401cfdedc95351df52",
+                  "file": {
+                    "path": "frontend\\src\\router\\index.js",
+                    "hash": "6ff27a58105480cbf2bfb5536f77eba81f93a1458047f9401cfdedc95351df52",
+                    "size": 1893,
+                    "modified": 1783877953926.2798
+                  }
+                }
+              },
+              "right": {
+                "hash": "cff92546353a3259941d714c7b5c11284221ddb7b75691ae70f98c16868d8444",
+                "left": {
+                  "hash": "b9bd08170c70ad6662181f5f1138d3ca3fbd5e81058286a6217ac32220c956f1",
+                  "file": {
+                    "path": "frontend\\src\\stores\\user.js",
+                    "hash": "b9bd08170c70ad6662181f5f1138d3ca3fbd5e81058286a6217ac32220c956f1",
+                    "size": 1220,
+                    "modified": 1783877953926.2798
+                  }
+                },
+                "right": {
+                  "hash": "714421122eb5daca01e172852f30b473806a22187f2ef2e2d7501026ad1bba16",
+                  "file": {
+                    "path": "frontend\\src\\utils\\request.js",
+                    "hash": "714421122eb5daca01e172852f30b473806a22187f2ef2e2d7501026ad1bba16",
+                    "size": 2012,
+                    "modified": 1783880414531.2356
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "right": {
+      "hash": "b932790e0720b9f9a7be8f905d9884a47277503fe82766f84bc749ac7cf06eed",
+      "left": {
+        "hash": "af13dc6c7b3ae85a4d95c0754adcf10bc292455883e9fccdafb563368ff99abe",
+        "left": {
+          "hash": "a897fbb077596f72d01acaf9d07b364a06f50b1a17c854db5baa6d5dde3c25ba",
+          "left": {
+            "hash": "cb3f3d4fde2c94708b8e6b358f5a4c48327f4ef7d9f4b5464ca402aca2d3224c",
+            "left": {
+              "hash": "4a66157ec9ac586201050cb5063857ad428312df2f0d084260ff307f29d2d7cf",
+              "file": {
+                "path": "frontend\\src\\views\\admission\\AdmissionProcess.vue",
+                "hash": "4a66157ec9ac586201050cb5063857ad428312df2f0d084260ff307f29d2d7cf",
+                "size": 2843,
+                "modified": 1783877953934.2732
+              }
+            },
+            "right": {
+              "hash": "99600537d558b589d5e1ef8b370d060fe31aa657d9db8c15b43ee9903e91e1b1",
+              "file": {
+                "path": "frontend\\src\\views\\admission\\AdmissionQuery.vue",
+                "hash": "99600537d558b589d5e1ef8b370d060fe31aa657d9db8c15b43ee9903e91e1b1",
+                "size": 3867,
+                "modified": 1783877953936.2737
+              }
+            }
+          },
+          "right": {
+            "hash": "6ed59e1df4429de38dd972e01b04ef6bac03f8a638cd8680ab336470d30a962c",
+            "left": {
+              "hash": "5b2fb660e76920f6e551ba176b7b24d43f1271b7272c59663e97f2a3df04537c",
+              "file": {
+                "path": "frontend\\src\\views\\admission\\Dashboard.vue",
+                "hash": "5b2fb660e76920f6e551ba176b7b24d43f1271b7272c59663e97f2a3df04537c",
+                "size": 3399,
+                "modified": 1783877953936.2737
+              }
+            },
+            "right": {
+              "hash": "ade405bd2c1f6bb3e802f5ebf5bab1081341f5e6b1830c21345fd92ee5f0db6d",
+              "file": {
+                "path": "frontend\\src\\views\\application\\ApplicationForm.vue",
+                "hash": "ade405bd2c1f6bb3e802f5ebf5bab1081341f5e6b1830c21345fd92ee5f0db6d",
+                "size": 9953,
+                "modified": 1783877953934.2732
+              }
+            }
+          }
+        },
+        "right": {
+          "hash": "dd2fbde5cda09c53fb958aba89392f6a9b0f35079eb2f76dce511d0d6d3bbab4",
+          "left": {
+            "hash": "28c772efb15ce86f8b97e81d4d15eff8dd21881bfbfe13015f57a6a6274a82f7",
+            "left": {
+              "hash": "7022df6f49900bc5e98b85e40d77e925d47cd199667ac9e7f2232bb0d33fab86",
+              "file": {
+                "path": "frontend\\src\\views\\Login.vue",
+                "hash": "7022df6f49900bc5e98b85e40d77e925d47cd199667ac9e7f2232bb0d33fab86",
+                "size": 2465,
+                "modified": 1783877953933.2732
+              }
+            },
+            "right": {
+              "hash": "e67fac28bf7a56f52652dc6de6fea4498c54617dca92df8c9caf44f8b9b12b28",
+              "file": {
+                "path": "frontend\\src\\views\\student\\ClassList.vue",
+                "hash": "e67fac28bf7a56f52652dc6de6fea4498c54617dca92df8c9caf44f8b9b12b28",
+                "size": 3819,
+                "modified": 1783877953934.2732
+              }
+            }
+          },
+          "right": {
+            "hash": "fa962387e5b9520454f387997a86b321c63c12e4da429f4640a967d4655c9173",
+            "left": {
+              "hash": "8190ec394c4a5fbdc421bd4c5f23e36f6335b1bd36ef40027b107b5938429e1b",
+              "file": {
+                "path": "frontend\\src\\views\\student\\StudentList.vue",
+                "hash": "8190ec394c4a5fbdc421bd4c5f23e36f6335b1bd36ef40027b107b5938429e1b",
+                "size": 8838,
+                "modified": 1783877953934.2732
+              }
+            },
+            "right": {
+              "hash": "2d7de1670c629a3670d429c72bfbd6f2d84bfad22c21bee8369a344245412cbd",
+              "file": {
+                "path": "frontend\\src\\views\\university\\ScoreLineList.vue",
+                "hash": "2d7de1670c629a3670d429c72bfbd6f2d84bfad22c21bee8369a344245412cbd",
+                "size": 4935,
+                "modified": 1783877953934.2732
+              }
+            }
+          }
+        }
+      },
+      "right": {
+        "hash": "bff2e6db427ee26729de25e99650855fe840755019a59ceb841e290843ad4ac4",
+        "left": {
+          "hash": "c2d78747a2bb2434cdfd6e04bb35726cf5ef099a1758007850ff63f857709bc2",
+          "file": {
+            "path": "frontend\\src\\views\\university\\UniversityList.vue",
+            "hash": "c2d78747a2bb2434cdfd6e04bb35726cf5ef099a1758007850ff63f857709bc2",
+            "size": 8470,
+            "modified": 1783877953934.2732
+          }
+        },
+        "right": {
+          "hash": "f81d7fe13ad6694730b1d02ac6ce7c4c9598cabea89bd04fa262c4f0c2dc6b14",
+          "file": {
+            "path": "frontend\\vite.config.js",
+            "hash": "f81d7fe13ad6694730b1d02ac6ce7c4c9598cabea89bd04fa262c4f0c2dc6b14",
+            "size": 283,
+            "modified": 1783877953926.2798
+          }
+        }
+      }
+    }
+  }
+}
