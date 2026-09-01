@@ -4,7 +4,9 @@ import com.gaokao.entity.Province;
 import com.gaokao.mapper.ProvinceMapper;
 import com.gaokao.entity.MajorCourse;
 import com.gaokao.service.MajorCourseService;
+import com.gaokao.util.AuthContext;
 import com.gaokao.util.Result;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -30,7 +32,9 @@ public class CommonController {
     }
 
     @PostMapping("/majors/{majorId}/courses")
-    public Result<Void> saveMajorCourses(@PathVariable Long majorId, @RequestBody Map<String, List<String>> body) {
+    public Result<Void> saveMajorCourses(@PathVariable Long majorId, @RequestBody Map<String, List<String>> body,
+                                         HttpServletRequest request) {
+        AuthContext.requireAdmin(request);
         majorCourseService.saveCourses(majorId, body.get("courses"));
         return Result.success();
     }

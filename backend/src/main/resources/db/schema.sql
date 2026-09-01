@@ -88,13 +88,15 @@ CREATE TABLE IF NOT EXISTS university_score_line (
 CREATE TABLE IF NOT EXISTS interest_course (
     id         BIGINT AUTO_INCREMENT(100) PRIMARY KEY,
     student_id BIGINT      NOT NULL,
-    name       VARCHAR(100) NOT NULL
+    name       VARCHAR(100) NOT NULL,
+    UNIQUE(student_id, name)
 );
 
 CREATE TABLE IF NOT EXISTS major_course (
     id        BIGINT AUTO_INCREMENT(100) PRIMARY KEY,
     major_id  BIGINT       NOT NULL,
-    name      VARCHAR(100) NOT NULL
+    name      VARCHAR(100) NOT NULL,
+    UNIQUE(major_id, name)
 );
 
 CREATE TABLE IF NOT EXISTS application (
@@ -135,3 +137,59 @@ CREATE TABLE IF NOT EXISTS admission_log (
     detail           VARCHAR(500),
     created_at       TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE sys_user ADD CONSTRAINT IF NOT EXISTS fk_sys_user_student
+    FOREIGN KEY (student_id) REFERENCES student(id);
+ALTER TABLE class_info ADD CONSTRAINT IF NOT EXISTS fk_class_info_province
+    FOREIGN KEY (province_id) REFERENCES province(id);
+ALTER TABLE student ADD CONSTRAINT IF NOT EXISTS fk_student_province
+    FOREIGN KEY (province_id) REFERENCES province(id);
+ALTER TABLE student ADD CONSTRAINT IF NOT EXISTS fk_student_class
+    FOREIGN KEY (class_id) REFERENCES class_info(id);
+ALTER TABLE university ADD CONSTRAINT IF NOT EXISTS fk_university_province
+    FOREIGN KEY (province_id) REFERENCES province(id);
+ALTER TABLE department ADD CONSTRAINT IF NOT EXISTS fk_department_university
+    FOREIGN KEY (university_id) REFERENCES university(id) ON DELETE CASCADE;
+ALTER TABLE major ADD CONSTRAINT IF NOT EXISTS fk_major_department
+    FOREIGN KEY (department_id) REFERENCES department(id) ON DELETE CASCADE;
+ALTER TABLE province_quota ADD CONSTRAINT IF NOT EXISTS fk_province_quota_major
+    FOREIGN KEY (major_id) REFERENCES major(id) ON DELETE CASCADE;
+ALTER TABLE province_quota ADD CONSTRAINT IF NOT EXISTS fk_province_quota_province
+    FOREIGN KEY (province_id) REFERENCES province(id);
+ALTER TABLE score_line ADD CONSTRAINT IF NOT EXISTS fk_score_line_province
+    FOREIGN KEY (province_id) REFERENCES province(id);
+ALTER TABLE university_score_line ADD CONSTRAINT IF NOT EXISTS fk_university_score_line_university
+    FOREIGN KEY (university_id) REFERENCES university(id) ON DELETE CASCADE;
+ALTER TABLE university_score_line ADD CONSTRAINT IF NOT EXISTS fk_university_score_line_province
+    FOREIGN KEY (province_id) REFERENCES province(id);
+ALTER TABLE university_score_line ADD CONSTRAINT IF NOT EXISTS fk_university_score_line_major
+    FOREIGN KEY (major_id) REFERENCES major(id) ON DELETE CASCADE;
+ALTER TABLE interest_course ADD CONSTRAINT IF NOT EXISTS fk_interest_course_student
+    FOREIGN KEY (student_id) REFERENCES student(id) ON DELETE CASCADE;
+ALTER TABLE major_course ADD CONSTRAINT IF NOT EXISTS fk_major_course_major
+    FOREIGN KEY (major_id) REFERENCES major(id) ON DELETE CASCADE;
+ALTER TABLE application ADD CONSTRAINT IF NOT EXISTS fk_application_student
+    FOREIGN KEY (student_id) REFERENCES student(id) ON DELETE CASCADE;
+ALTER TABLE application ADD CONSTRAINT IF NOT EXISTS fk_application_university
+    FOREIGN KEY (university_id) REFERENCES university(id);
+ALTER TABLE application_major ADD CONSTRAINT IF NOT EXISTS fk_application_major_application
+    FOREIGN KEY (application_id) REFERENCES application(id) ON DELETE CASCADE;
+ALTER TABLE application_major ADD CONSTRAINT IF NOT EXISTS fk_application_major_major
+    FOREIGN KEY (major_id) REFERENCES major(id);
+ALTER TABLE admission_result ADD CONSTRAINT IF NOT EXISTS fk_admission_result_student
+    FOREIGN KEY (student_id) REFERENCES student(id) ON DELETE CASCADE;
+ALTER TABLE admission_result ADD CONSTRAINT IF NOT EXISTS fk_admission_result_university
+    FOREIGN KEY (university_id) REFERENCES university(id);
+ALTER TABLE admission_result ADD CONSTRAINT IF NOT EXISTS fk_admission_result_major
+    FOREIGN KEY (major_id) REFERENCES major(id);
+ALTER TABLE admission_log ADD CONSTRAINT IF NOT EXISTS fk_admission_log_student
+    FOREIGN KEY (student_id) REFERENCES student(id) ON DELETE CASCADE;
+
+CREATE INDEX IF NOT EXISTS idx_student_score ON student(total_score DESC);
+CREATE INDEX IF NOT EXISTS idx_student_class ON student(class_id);
+CREATE INDEX IF NOT EXISTS idx_application_student_status_priority ON application(student_id, status, priority);
+CREATE INDEX IF NOT EXISTS idx_application_major_application_priority ON application_major(application_id, priority);
+CREATE INDEX IF NOT EXISTS idx_major_department ON major(department_id);
+CREATE INDEX IF NOT EXISTS idx_province_quota_major_province ON province_quota(major_id, province_id);
+CREATE INDEX IF NOT EXISTS idx_admission_result_query ON admission_result(status, university_id, student_id);
+CREATE INDEX IF NOT EXISTS idx_admission_log_student ON admission_log(student_id);

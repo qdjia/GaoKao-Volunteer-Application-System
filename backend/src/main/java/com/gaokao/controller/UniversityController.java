@@ -2,7 +2,9 @@ package com.gaokao.controller;
 
 import com.gaokao.entity.*;
 import com.gaokao.service.UniversityService;
+import com.gaokao.util.AuthContext;
 import com.gaokao.util.Result;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -27,13 +29,15 @@ public class UniversityController {
     }
 
     @PostMapping
-    public Result<Void> save(@RequestBody University university) {
+    public Result<Void> save(@RequestBody University university, HttpServletRequest request) {
+        AuthContext.requireAdmin(request);
         universityService.saveUniversity(university);
         return Result.success();
     }
 
     @DeleteMapping("/{id}")
-    public Result<Void> delete(@PathVariable Long id) {
+    public Result<Void> delete(@PathVariable Long id, HttpServletRequest request) {
+        AuthContext.requireAdmin(request);
         universityService.deleteUniversity(id);
         return Result.success();
     }
@@ -44,13 +48,15 @@ public class UniversityController {
     }
 
     @PostMapping("/departments")
-    public Result<Void> saveDepartment(@RequestBody Department department) {
+    public Result<Void> saveDepartment(@RequestBody Department department, HttpServletRequest request) {
+        AuthContext.requireAdmin(request);
         universityService.saveDepartment(department);
         return Result.success();
     }
 
     @DeleteMapping("/departments/{id}")
-    public Result<Void> deleteDepartment(@PathVariable Long id) {
+    public Result<Void> deleteDepartment(@PathVariable Long id, HttpServletRequest request) {
+        AuthContext.requireAdmin(request);
         universityService.deleteDepartment(id);
         return Result.success();
     }
@@ -68,13 +74,15 @@ public class UniversityController {
     }
 
     @PostMapping("/majors")
-    public Result<Void> saveMajor(@RequestBody Major major) {
+    public Result<Void> saveMajor(@RequestBody Major major, HttpServletRequest request) {
+        AuthContext.requireAdmin(request);
         universityService.saveMajor(major);
         return Result.success();
     }
 
     @DeleteMapping("/majors/{id}")
-    public Result<Void> deleteMajor(@PathVariable Long id) {
+    public Result<Void> deleteMajor(@PathVariable Long id, HttpServletRequest request) {
+        AuthContext.requireAdmin(request);
         universityService.deleteMajor(id);
         return Result.success();
     }
@@ -85,7 +93,8 @@ public class UniversityController {
     }
 
     @PostMapping("/majors/quotas")
-    public Result<Void> saveQuota(@RequestBody ProvinceQuota quota) {
+    public Result<Void> saveQuota(@RequestBody ProvinceQuota quota, HttpServletRequest request) {
+        AuthContext.requireAdmin(request);
         universityService.saveQuota(quota);
         return Result.success();
     }

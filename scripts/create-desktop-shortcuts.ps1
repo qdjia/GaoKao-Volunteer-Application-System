@@ -22,8 +22,8 @@ function New-Shortcut {
 
 New-Shortcut `
     -Name "Gaokao Start App" `
-    -TargetScript (Join-Path $ScriptDir "start-app.ps1") `
-    -Description "Start frontend and backend, then open the app."
+    -TargetScript (Join-Path $ScriptDir "start-app-session.ps1") `
+    -Description "Start the app in a standalone window, then stop services when the window closes."
 
 New-Shortcut `
     -Name "Gaokao Backend Status" `

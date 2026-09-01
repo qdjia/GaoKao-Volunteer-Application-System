@@ -2,3 +2,7 @@ backend/target/
 *.jar
 target/
 logs/
+.runtime/
+frontend/dist/
+backend/data/
+data/

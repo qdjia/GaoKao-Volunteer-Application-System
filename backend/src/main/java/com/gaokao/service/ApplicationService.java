@@ -40,6 +40,8 @@ public class ApplicationService {
 
     @Transactional
     public void submitApplication(ApplicationSubmitRequest request) {
+        validateApplicationRequest(request);
+
         Long studentId = request.getStudentId();
         Student student = studentMapper.findById(studentId);
         if (student == null) {
@@ -69,6 +71,69 @@ public class ApplicationService {
                     am.setMajorId(mi.getMajorId());
                     am.setPriority(mi.getPriority());
                     applicationMajorMapper.insert(am);
+                }
+            }
+        }
+    }
+
+    private void validateApplicationRequest(ApplicationSubmitRequest request) {
+        if (request == null || request.getStudentId() == null) {
+            throw new RuntimeException("学生ID不能为空");
+        }
+        if (request.getApplications() == null || request.getApplications().isEmpty()) {
+            throw new RuntimeException("志愿列表不能为空");
+        }
+        if (request.getStatus() != null && !"DRAFT".equals(request.getStatus()) && !"SUBMITTED".equals(request.getStatus())) {
+            throw new RuntimeException("志愿状态只能是DRAFT或SUBMITTED");
+        }
+        if (request.getApplications().size() > 10) {
+            throw new RuntimeException("每名学生最多填报10个院校志愿");
+        }
+
+        Set<Long> universityIds = new HashSet<>();
+        Set<Integer> applicationPriorities = new HashSet<>();
+        for (ApplicationSubmitRequest.ApplicationItem item : request.getApplications()) {
+            if (item.getUniversityId() == null) {
+                throw new RuntimeException("志愿院校不能为空");
+            }
+            if (!universityIds.add(item.getUniversityId())) {
+                throw new RuntimeException("不允许重复填报同一院校");
+            }
+            if (item.getPriority() == null || item.getPriority() < 1 || item.getPriority() > 10) {
+                throw new RuntimeException("院校志愿优先级必须在1到10之间");
+            }
+            if (!applicationPriorities.add(item.getPriority())) {
+                throw new RuntimeException("院校志愿优先级不能重复");
+            }
+            if (item.getMajors() == null || item.getMajors().isEmpty()) {
+                throw new RuntimeException("每个院校志愿至少选择1个专业");
+            }
+            if (item.getMajors().size() > 3) {
+                throw new RuntimeException("每个院校志愿最多选择3个专业");
+            }
+
+            Set<Long> majorIds = new HashSet<>();
+            Set<Integer> majorPriorities = new HashSet<>();
+            for (ApplicationSubmitRequest.MajorItem majorItem : item.getMajors()) {
+                if (majorItem.getMajorId() == null) {
+                    throw new RuntimeException("专业不能为空");
+                }
+                if (!majorIds.add(majorItem.getMajorId())) {
+                    throw new RuntimeException("同一院校志愿中不允许重复选择专业");
+                }
+                if (majorItem.getPriority() == null || majorItem.getPriority() < 1 || majorItem.getPriority() > 3) {
+                    throw new RuntimeException("专业志愿优先级必须在1到3之间");
+                }
+                if (!majorPriorities.add(majorItem.getPriority())) {
+                    throw new RuntimeException("专业志愿优先级不能重复");
+                }
+
+                Major major = majorMapper.findById(majorItem.getMajorId());
+                if (major == null) {
+                    throw new RuntimeException("专业不存在");
+                }
+                if (!item.getUniversityId().equals(major.getUniversityId())) {
+                    throw new RuntimeException("专业必须属于对应院校");
                 }
             }
         }

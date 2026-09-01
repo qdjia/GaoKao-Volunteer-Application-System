@@ -29,7 +29,7 @@
 | 构建工具 | Vite | 5.4+ |
 | 后端框架 | Spring Boot | 3.3.6 |
 | ORM | MyBatis | 3.0.4 (Spring Boot Starter) |
-| 开发数据库 | H2 | 内嵌（内存模式） |
+| 开发数据库 | H2 | 文件模式（本地持久化） |
 | 生产数据库 | PostgreSQL | - |
 | JDK | Java | 17+ |
 | Node.js | - | 18+ |
@@ -392,14 +392,17 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUA
 
 | 快捷方式 | 作用 |
 |------|------|
-| Gaokao Start App | 启动后端、启动前端并打开系统页面 |
+| Gaokao Start App | 启动后端、启动前端并打开独立系统窗口；关闭窗口后自动停止本次启动的服务 |
 | Gaokao Backend Status | 检查后端是否运行 |
 | Gaokao Stop Backend | 停止后端服务 |
 
 也可以直接运行脚本：
 
 ```powershell
-# 一键启动后端、前端并打开浏览器
+# 会话式启动：打开独立系统窗口，关闭窗口后自动停止本次启动的前后端
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUAWEI\scripts\start-app-session.ps1
+
+# 兼容入口：启动后端、前端并打开默认浏览器，不跟踪窗口关闭
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUAWEI\scripts\start-app.ps1
 
 # 只启动后端
@@ -413,7 +416,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUA
 - 前端地址：http://localhost:5173
 - 后端日志：`logs/backend.log`
 - 启动脚本会先检查端口，已运行时不会重复启动
-- **注意**：H2 为内存模式，每次重启后端数据会重置
+- 会话式启动器会优先使用 Edge/Chrome 的独立 app 窗口；如果服务在启动前已经运行，关闭窗口时不会误关已有服务
+- **注意**：H2 使用文件模式，数据保存在 `backend/data/`，重启后仍会保留
 
 ### 7.3 后端手动启动
 
@@ -423,12 +427,12 @@ mvn clean package -DskipTests
 java -jar target/gaokao-zhiyuan-1.0.0.jar
 ```
 
-- 首次启动自动执行 schema.sql 建表 + data.sql 导入示例数据
+- 启动时自动执行 schema.sql 建表/补约束；仅在空库时导入 data.sql 示例数据
 - 后端地址：http://localhost:8080
 - H2控制台：http://localhost:8080/h2-console
-  - JDBC URL：jdbc:h2:mem:gaokao
+  - JDBC URL：jdbc:h2:file:./data/gaokao
   - 用户名：sa，密码：空
-- **注意**：H2为内存模式，每次重启后端数据会重置
+- **注意**：H2为文件模式，数据保存在 `backend/data/`
 
 ### 7.4 前端手动启动
 
@@ -462,21 +466,27 @@ npm run build
 
 **切换至 PostgreSQL：**
 
-修改 application.yml：
+项目已预留 `application-postgresql.yml`。启动时指定 profile：
+
+```bash
+java -jar target/gaokao-zhiyuan-1.0.0.jar --spring.profiles.active=postgresql
+```
+
+PostgreSQL 配置可通过环境变量覆盖：
 
 ```yaml
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/gaokao
     driver-class-name: org.postgresql.Driver
-    username: your_username
-    password: your_password
+    username: ${GAOKAO_DB_USERNAME:postgres}
+    password: ${GAOKAO_DB_PASSWORD:postgres}
   sql:
     init:
       mode: never
 ```
 
-**注意**：当前开发环境使用H2内存模式（`jdbc:h2:mem:gaokao`），每次重启数据重置。切换PostgreSQL后需将`sql.init.mode`改为`never`（首次可设为`always`初始化数据后改回）。
+**注意**：当前开发环境使用 H2 文件库（`jdbc:h2:file:./data/gaokao;DB_CLOSE_ON_EXIT=FALSE`）。切换 PostgreSQL 后不会自动执行 H2 的 schema/data 初始化，后续建议引入 Flyway 或 Liquibase 管理生产库表结构。
 
 ---
 
@@ -576,13 +586,20 @@ spring:
 | 录取分配 | 可用 | 不可用 | 不可用 |
 | 录取查询 | 可用 | 可用 | 可用 |
 
+后端已接入基础角色权限：
+
+- 管理员可执行基础数据维护、录取分配、录取日志查看
+- 学生仅可查看/维护自己的学生信息、兴趣课程、志愿、推荐和录取结果
+- 教师账号暂未绑定班级模型，录取明细查询暂时不开放，后续需补教师-班级关联
+- 志愿提交已在后端校验院校数量、专业数量、院校重复、专业重复、专业归属和 priority 范围
+
 ---
 
 ## 十一、已知限制与后续规划
 
 | 项目 | 当前状态 | 后续规划 |
 |------|----------|----------|
-| 数据库 | H2内嵌内存模式（开发用，重启数据重置） | 切换PostgreSQL，支持生产级部署 |
+| 数据库 | H2文件模式（本地持久化），已预留PostgreSQL profile | 引入Flyway/Liquibase，支持生产级部署 |
 | 认证 | 简易Token（内存存储） | 接入JWT + Redis，支持Token刷新 |
 | 批量导入 | 未实现前端页面 | 前端Excel上传组件 + EasyExcel解析 |
 | 数据导出 | 未实现 | 录取结果导出Excel/CSV |
@@ -599,20 +616,20 @@ spring:
 | 优先级 | 模块 | 当前状态 | 建议完善 |
 |------|------|----------|----------|
 | P0 | 录取算法 | 已支持物理类/历史类分开录取、专业优先级、调剂选科校验、分省名额 | 增加语文/数学/外语单科字段，完成真实同分排序；增加算法单元测试和边界数据 |
-| P0 | 志愿填报 | 支持草稿、提交、锁定和选科校验 | 后端补全提交校验：最多10校、每校最多3专业、不重复院校、专业必须属于院校、priority合法 |
-| P0 | 权限控制 | 前端菜单按角色显示，后端基于Token识别登录 | 后端接口强制鉴权：学生只能访问本人志愿/结果；教师只能看本班；管理员全量管理 |
-| P1 | 数据库 | H2内存库适合演示，schema约束较轻 | 增加外键、索引、唯一约束；拆分dev/prod profile；生产切换PostgreSQL |
+| P0 | 志愿填报 | 已补后端强校验，支持草稿、提交、锁定和选科校验 | 增加填报起止时间和提交前预检说明 |
+| P0 | 权限控制 | 已接入管理员/学生后端鉴权，教师本班权限缺少数据模型 | 补教师-班级关联后开放教师班级视图 |
+| P1 | 数据库 | H2文件库已持久化，schema已补关键约束和索引，已预留PostgreSQL profile | 引入Flyway/Liquibase，沉淀正式迁移脚本 |
 | P1 | 认证模块 | 简易Token内存存储，密码明文 | 密码使用BCrypt；Token改JWT并带过期时间；需要主动登出时再接Redis |
 | P1 | 导入导出 | 后端已有Excel相关依赖，前端页面未做 | 增加学生、院校、专业、招生计划Excel导入；录取结果CSV/Excel导出 |
 | P1 | 录取查询 | 支持学校/学生/班级等条件查询 | 增加未录取原因筛选、调剂统计、批量导出、教师班级视角 |
 | P2 | 数据看板 | 有录取数量和分数段图表 | 增加物理类/历史类分组看板、各省计划使用率、退档原因分布 |
 | P2 | 院校专业管理 | 支持大学-院系-专业维护和分省计划 | 增加批量编辑、计划校验、专业选科模板、删除前影响提示 |
 | P2 | 前端体验 | Element Plus页面基本可用 | 优化移动端布局、表格分页、加载态、空状态、表单错误提示 |
-| P2 | 启动部署 | 已支持桌面快捷方式点击启动 | 后续可增加健康检查页面、前后端一键打包脚本、生产部署说明 |
+| P2 | 启动部署 | 已支持桌面快捷方式会话式启动，关闭独立前端窗口后可自动停止本次启动的前后端 | 后续可增加健康检查页面、前后端一键打包脚本、生产部署说明 |
 | P3 | 测试体系 | 目前以手工验证和编译验证为主 | 增加后端Service测试、接口测试、前端关键流程E2E测试 |
 
 ### 推荐下一步
 
-1. 完成志愿提交后端强校验，防止无效数据进入录取算法。
+1. 补教师-班级关联模型，完成教师“仅本班”权限。
 2. 为录取算法补测试数据和单元测试，覆盖物理类/历史类、调剂、退档、分省名额、选科不符。
-3. 补齐权限拦截，避免学生通过修改请求参数访问或提交他人数据。
+3. 引入 Flyway/Liquibase，把当前 schema 演进固化成正式迁移脚本。

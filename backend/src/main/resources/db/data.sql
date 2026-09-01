@@ -7,12 +7,6 @@ INSERT INTO province (id, name) VALUES
 (26, '西藏'), (27, '陕西'), (28, '甘肃'), (29, '青海'), (30, '宁夏'),
 (31, '新疆');
 
-INSERT INTO sys_user (id, username, password, role) VALUES
-(1, 'admin', 'admin123', 'ADMIN'),
-(2, '2024001', '123456', 'STUDENT'),
-(3, '2024002', '123456', 'STUDENT'),
-(4, 'teacher1', '123456', 'TEACHER');
-
 INSERT INTO class_info (id, name, grade, teacher, province_id) VALUES
 (1, '高三1班', '2024', '张老师', 1),
 (2, '高三2班', '2024', '李老师', 1),
@@ -24,6 +18,12 @@ INSERT INTO student (id, student_no, name, gender, total_score, province_id, cla
 (3, '2024003', '王五', '男', 620, 1, 2, '史政地', '13800000003'),
 (4, '2024004', '赵六', '女', 590, 10, 3, '物化生', '13800000004'),
 (5, '2024005', '钱七', '男', 560, 10, 3, '物化地', '13800000005');
+
+INSERT INTO sys_user (id, username, password, role, student_id) VALUES
+(1, 'admin', 'admin123', 'ADMIN', NULL),
+(2, '2024001', '123456', 'STUDENT', 1),
+(3, '2024002', '123456', 'STUDENT', 2),
+(4, 'teacher1', '123456', 'TEACHER', NULL);
 
 INSERT INTO university (id, name, type, province_id, batch) VALUES
 (1, '清华大学', '985', 1, '本科一批'),
@@ -266,3 +266,5 @@ INSERT INTO major_course (major_id, name) VALUES
 (72,'数据结构'),(72,'操作系统'),(72,'算法设计'),
 (75,'建筑设计'),(75,'建筑历史'),(75,'城市规划'),
 (77,'材料力学'),(77,'结构力学'),(77,'混凝土结构');
+
+

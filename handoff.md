@@ -84,19 +84,20 @@ D:\git_projects\demo_HUAWEI\
 **现象**：npm命令被PowerShell禁止执行  
 **解决**：`Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force`
 
-### 4.5 H2文件数据库启动失败（本次修复）
+### 4.5 H2文件数据库启动问题与当前策略（已更新）
 
-**现象**：后端无法启动，H2数据库文件锁冲突 + data.sql重复执行主键冲突  
+**现象**：早期后端曾因 H2 文件锁冲突、`data.sql` 重复执行主键冲突导致启动失败。  
 **原因**：
 1. H2文件模式（`jdbc:h2:file`）在H2 Shell连接后生成lock文件，导致Spring Boot无法连接
 2. `sql.init.mode=always`每次启动都执行data.sql，第二次启动时INSERT主键冲突
 3. H2的AUTO_INCREMENT默认从1开始，与data.sql中手动插入的ID冲突
 
-**解决**：
-1. H2改为内存模式：`jdbc:h2:mem:gaokao`（每次启动全新数据库，避免锁和冲突）
-2. data.sql恢复为INSERT（内存数据库每次启动都是空的，INSERT不会冲突）
-3. 所有15张表的AUTO_INCREMENT设为`AUTO_INCREMENT(100)`或更大，避免与初始数据ID冲突
-4. 添加`continue-on-error: true`作为保险
+**当前解决方案**：
+1. H2已改回文件库：`jdbc:h2:file:./data/gaokao;DB_CLOSE_ON_EXIT=FALSE`，关闭后端后数据保存在 `backend/data/`
+2. Spring SQL初始化只自动执行 `schema.sql`，不再每次自动执行 `data.sql`
+3. 新增 `DemoDataInitializer`，仅在 H2 空库时导入示例数据，已有数据不覆盖
+4. 所有表的AUTO_INCREMENT设为`AUTO_INCREMENT(100)`或更大，避免与初始数据ID冲突
+5. `.gitignore` 已忽略 `backend/data/`、`data/` 和运行日志，避免提交本地数据库文件
 
 ### 4.6 注册功能实现（本次新增）
 
@@ -116,9 +117,11 @@ D:\git_projects\demo_HUAWEI\
 - 新增 `scripts/start-backend.ps1`：检查 8080 端口，已运行则直接退出，未运行则后台启动后端
 - 新增 `scripts/start-frontend.ps1`：检查 5173 端口，未运行则后台启动 Vite
 - 新增 `scripts/start-app.ps1`：一键启动后端、前端并打开 `http://localhost:5173`
-- 新增 `scripts/backend-status.ps1` 与 `scripts/stop-backend.ps1`：查看/停止后端
+- 新增 `scripts/start-app-session.ps1`：会话式启动，打开独立前端窗口，关闭窗口后自动停止本次启动的前后端
+- 新增 `scripts/backend-status.ps1`、`scripts/stop-backend.ps1` 与 `scripts/stop-frontend.ps1`：查看/停止服务
 - 新增 `scripts/create-desktop-shortcuts.ps1`：创建桌面快捷方式
 - 新增 `scripts/setup-desktop-shortcuts.ps1`：一键创建桌面快捷方式
+- `Gaokao Start App` 快捷方式已改为指向 `start-app-session.ps1`
 - `scripts/setup-startup.ps1` 已调整为只创建桌面快捷方式，不再安装开机/登录自启动
 - 保留 `scripts/install-backend-startup.ps1` 和 `scripts/uninstall-backend-startup.ps1` 作为备用手动维护脚本
 - 后端日志降噪：关闭 MyBatis 控制台 SQL 日志，应用日志调整为 info
@@ -134,13 +137,36 @@ D:\git_projects\demo_HUAWEI\
 - 专业志愿按 priority 处理，避免数据库返回顺序影响录取结果
 - 调剂专业也必须满足学生选科和本省招生名额
 
+### 4.9 H2文件库持久化与PostgreSQL预留（本次新增）
+
+**需求**：关闭后端后保留本地数据，同时保留后续切换 PostgreSQL 的空间  
+**实现**：
+- `application.yml` 改为 H2 文件库：`jdbc:h2:file:./data/gaokao;DB_CLOSE_ON_EXIT=FALSE`
+- 新增 `application-postgresql.yml`，通过 `--spring.profiles.active=postgresql` 切换
+- PostgreSQL 用户名/密码支持 `GAOKAO_DB_USERNAME`、`GAOKAO_DB_PASSWORD` 环境变量
+- Spring SQL 初始化只执行 `schema.sql`，不再每次自动执行 `data.sql`
+- 新增 `DemoDataInitializer`：仅在 H2 空库时导入示例数据，已有数据不覆盖
+- `DemoDataInitializer` 会修复历史示例学生账号缺失 `student_id` 的问题
+- `.gitignore` 忽略 `backend/data/` 和 `data/`
+
+### 4.10 后端权限控制与志愿提交强校验（本次新增）
+
+**需求**：按生产默认规则，不信任前端菜单和请求参数  
+**实现**：
+- 新增 `AuthContext`，统一解析当前登录用户和角色
+- 管理员才能执行录取、查看录取日志、维护学生/班级/院校/分数线/专业课程
+- 学生只能访问自己的学生信息、兴趣课程、志愿、推荐和录取结果
+- 学生访问他人数据返回 403
+- 教师账号暂未绑定班级，录取明细暂不开放，避免泄露全量数据
+- 志愿提交新增后端校验：最多10个院校志愿、每校最多3个专业、院校不重复、专业不重复、priority范围合法、专业必须属于对应院校、status只能为 `DRAFT` 或 `SUBMITTED`
+
 ---
 
 ## 五、当前未解决的问题
 
-### 5.1 🟡 桌面快捷方式创建需用户授权
+### 5.1 🟢 桌面快捷方式创建与刷新
 
-项目内脚本已完成。由于桌面快捷方式属于用户目录，需要在本机手动执行：
+项目内脚本已完成，本机桌面快捷方式已刷新。由于桌面快捷方式属于用户目录，换机器或快捷方式丢失时再手动执行：
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUAWEI\scripts\setup-desktop-shortcuts.ps1
@@ -148,38 +174,13 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUA
 
 执行后会创建：
 - 桌面快捷方式：`Gaokao Start App`、`Gaokao Backend Status`、`Gaokao Stop Backend`
+- 当前 `Gaokao Start App` 指向 `scripts/start-app-session.ps1`，不是开机自启动
+- 已确认未安装登录/开机自启动任务；如后续误装，可执行 `scripts/uninstall-backend-startup.ps1`
 
-### 5.2 🟡 会话式启动与退出联动
+### 5.2 🟡 教师本班权限模型缺失
 
-**期望效果**：点击桌面 `Gaokao Start App` 后自动启动后端、前端并打开前端页面；关闭该前端窗口后，自动关闭本次启动的前端和后端。  
-**推荐实现**：
-- 新增 `scripts/start-app-session.ps1`
-- 使用 Edge/Chrome 的 `--app=http://localhost:5173` 独立窗口模式打开前端页面
-- 脚本等待该独立浏览器进程退出
-- 浏览器窗口关闭后，调用停止逻辑清理本项目的前端 5173 和后端 8080
-- 桌面 `Gaokao Start App` 快捷方式改为指向 `start-app-session.ps1`
-
-**注意**：不要用普通浏览器标签页作为关闭信号，因为浏览器常复用已有进程，脚本难以判断用户关闭的是不是本项目页面。独立 app 窗口更稳定。
-
-### 5.3 🟡 关闭后数据持久化
-
-**当前问题**：后端配置仍为 `jdbc:h2:mem:gaokao`，属于内存数据库。后端关闭后，学生、志愿、录取结果等运行期修改都会丢失。  
-**期望效果**：关闭前端窗口并自动关闭后端后，本次操作数据仍保存在数据库里，下次点击快捷方式启动后继续可用。
-
-**推荐方案A：本地轻量持久化（优先）**
-- 将开发环境数据库改为 H2 文件模式，例如 `jdbc:h2:file:./data/gaokao;AUTO_SERVER=TRUE`
-- 新增 `data/` 目录并加入 `.gitignore`
-- `schema.sql` 保留 `CREATE TABLE IF NOT EXISTS`
-- `data.sql` 需要改成幂等初始化，避免每次启动重复插入主键冲突
-- `spring.sql.init.mode` 建议改为按需初始化，或将初始化逻辑迁移为应用启动时检查空库再导入
-
-**推荐方案B：生产级持久化**
-- 新增 PostgreSQL profile：`application-prod.yml`
-- 使用 PostgreSQL 保存真实数据
-- 通过 Flyway/Liquibase 管理 schema 版本
-- `data.sql` 只作为 demo 数据，不在生产环境自动执行
-
-**当前建议**：先做方案A。它最符合本地桌面快捷方式使用场景，改动小，能立刻解决“关闭后数据丢失”。等系统要多人使用或上线部署时，再推进方案B。
+当前 `sys_user` 没有绑定教师对应的班级或教师档案，无法可靠判断教师“仅本班”范围。  
+后续建议新增 `teacher` 或 `teacher_class` 表，将教师账号与班级关联，再开放教师班级学生和班级录取明细查询。
 
 ---
 
@@ -187,10 +188,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUA
 
 | 优先级 | 功能 | 说明 |
 |--------|------|------|
-| P0 | 本地数据库持久化 | 将H2内存库改为H2文件库，确保关闭后数据保留 |
-| P0 | 会话式启动器 | 点击桌面快捷方式启动，关闭独立前端窗口后自动停止前后端 |
-| P0 | 志愿提交强校验 | 后端校验最多10校、每校3专业、不重复院校、专业属于对应大学 |
-| P0 | 后端权限控制 | 学生仅本人、教师仅本班、管理员全量 |
+| P0 | 教师本班权限模型 | 新增教师-班级关联，开放教师视图 |
 | P1 | 批量导入前端页面 | 后端已有EasyExcel依赖，需前端Excel上传组件 |
 | 🟡 P1 | 数据导出 | 录取结果导出Excel/CSV |
 | 🟡 P1 | 志愿截止时间 | 后台配置填报起止时间，到期自动锁定 |
@@ -210,9 +208,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUA
 ```
 
 - 后端地址：http://localhost:8080
-- H2控制台：http://localhost:8080/h2-console（当前 JDBC URL: `jdbc:h2:mem:gaokao`，用户名：sa，密码：空）
+- H2控制台：http://localhost:8080/h2-console（当前 JDBC URL: `jdbc:h2:file:./data/gaokao`，用户名：sa，密码：空）
 - 后端日志：`D:\git_projects\demo_HUAWEI\logs\backend.log`
-- **注意**：当前 H2 为内存模式，每次重启后端数据会重置；下一步需改为 H2 文件模式以支持关闭后保存数据
+- **注意**：当前 H2 为文件模式，数据保存在 `D:\git_projects\demo_HUAWEI\backend\data\`
 
 ### 前端启动
 
@@ -225,7 +223,10 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUA
 ### 一键启动与桌面快捷方式
 
 ```powershell
-# 一键启动后端、前端并打开浏览器
+# 会话式启动：打开独立前端窗口，关闭窗口后自动停止本次启动的前后端
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUAWEI\scripts\start-app-session.ps1
+
+# 兼容入口：启动后端、前端并打开默认浏览器，不跟踪窗口关闭
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUAWEI\scripts\start-app.ps1
 
 # 创建桌面快捷方式。点击 Gaokao Start App 时才启动项目
@@ -253,7 +254,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUA
 | 文件 | 修改内容 |
 |------|----------|
 | `backend/pom.xml` | Lombok版本1.18.38 + annotationProcessorPaths配置 |
-| `backend/src/main/resources/application.yml` | H2改为内存模式`jdbc:h2:mem:gaokao`，`sql.init.mode=always`，添加`continue-on-error` |
+| `backend/src/main/resources/application.yml` | H2改为文件库`jdbc:h2:file:./data/gaokao;DB_CLOSE_ON_EXIT=FALSE`，只自动执行schema |
+| `backend/src/main/resources/application-postgresql.yml` | **新增**：PostgreSQL profile，预留生产数据库切换 |
+| `backend/src/main/java/com/gaokao/config/DemoDataInitializer.java` | **新增**：H2空库才导入demo数据，并修复学生账号student_id关联 |
 | `backend/src/main/resources/db/schema.sql` | `year`列改为`"year"`，所有表AUTO_INCREMENT设为(100)或更大 |
 | `backend/src/main/resources/db/data.sql` | `year`列改为`"year"`，恢复为INSERT语法 |
 | `backend/src/main/java/com/gaokao/mapper/ScoreLineMapper.java` | SQL中`sl.year`改为`sl."year"` |
@@ -268,11 +271,16 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUA
 | `frontend/src/router/index.js` | **修改**：添加/register路由，路由守卫放行 |
 | `frontend/src/api/index.js` | **修改**：添加register API |
 | `frontend/src/utils/request.js` | 增强错误处理，区分401/500/404/网络异常 |
-| `scripts/*.ps1` | **新增**：轻量化启动、停止、状态检查、自启动安装、桌面快捷方式创建脚本 |
-| `.gitignore` | 忽略运行日志目录 `logs/` |
+| `scripts/*.ps1` | **新增**：轻量化启动、会话式启动、停止、状态检查、自启动安装、桌面快捷方式创建脚本 |
+| `scripts/start-app-session.ps1` | **新增**：点击启动独立前端窗口，关闭窗口后自动停止本次启动的前后端 |
+| `scripts/stop-frontend.ps1` | **新增**：停止监听 5173 端口的前端进程 |
+| `.gitignore` | 忽略运行日志目录 `logs/`、临时运行目录 `.runtime/`、H2文件库目录 `backend/data/` 和 `data/` |
 | `backend/src/main/java/com/gaokao/util/SubjectMatcher.java` | **新增**：统一选科标准化与匹配规则 |
 | `backend/src/main/java/com/gaokao/service/AdmissionService.java` | **修改**：物理类/历史类分开录取，调剂校验选科，专业志愿按priority处理 |
 | `backend/src/main/java/com/gaokao/service/ApplicationService.java` | **修改**：前端实时选科校验复用统一匹配规则 |
+| `backend/src/main/java/com/gaokao/util/AuthContext.java` | **新增**：统一当前用户解析和权限判断 |
+| `backend/src/main/java/com/gaokao/controller/*Controller.java` | **修改**：敏感查询和写操作接入后端角色权限 |
+| `backend/src/main/resources/db/schema.sql` | **修改**：补充关键外键、唯一约束和查询索引 |
 
 ---
 
@@ -281,20 +289,39 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUA
 | 优先级 | 模块 | 当前状态 | 建议完善 |
 |------|------|----------|----------|
 | P0 | 录取算法 | 已完成物理类/历史类分开录取和调剂选科校验 | 补语文/数学/外语字段，实现真实同分排序；增加算法单元测试 |
-| P0 | 志愿填报 | 有草稿/提交/锁定，但后端校验不足 | 补最多10校、每校3专业、院校不重复、专业归属校验、priority范围校验 |
-| P0 | 权限控制 | 前端菜单有角色区分，后端主要做登录校验 | 后端按角色和数据归属做强制拦截，防止改参数访问他人数据 |
-| P1 | 数据库 | H2内存库便于演示，生产能力不足 | 引入PostgreSQL profile、Flyway/Liquibase、外键和关键索引 |
+| P0 | 志愿填报 | 已补后端强校验，有草稿/提交/锁定 | 增加填报时间窗口和提交预检 |
+| P0 | 权限控制 | 已完成管理员/学生后端强鉴权 | 补教师-班级关联模型，实现教师仅本班 |
+| P1 | 数据库 | H2文件库已持久化，已预留PostgreSQL profile，已补关键约束和索引 | 引入Flyway/Liquibase管理正式迁移 |
 | P1 | 认证 | 内存Token、明文密码 | 密码BCrypt；Token改JWT；需要会话吊销再接Redis |
 | P1 | 导入导出 | 依赖已存在，业务入口未完成 | 做学生/院校/专业/计划Excel导入，录取结果CSV/Excel导出 |
 | P1 | 录取查询 | 能查结果和日志 | 增加未录取原因、调剂统计、教师班级视角、导出入口 |
 | P2 | 数据看板 | 基础统计和图表可用 | 增加物理/历史分组、各省计划使用率、退档原因分布 |
 | P2 | 院校专业管理 | 三栏维护可用 | 增加批量维护、删除影响提示、选科要求模板 |
 | P2 | 前端体验 | 基础页面可用 | 优化移动端、分页、加载态、空状态、错误提示 |
-| P2 | 启动部署 | 已支持桌面快捷方式点击启动 | 增加健康检查页面、一键打包脚本、生产部署说明 |
+| P2 | 启动部署 | 已支持桌面快捷方式会话式启动，关闭独立前端窗口后可自动停止本次启动的前后端 | 增加健康检查页面、一键打包脚本、生产部署说明 |
 | P3 | 测试体系 | 主要依赖编译和手工验证 | 补Service单元测试、接口测试、关键流程E2E测试 |
 
 ### 推荐下一步实施顺序
 
-1. 先把 H2 内存库改为 H2 文件库，并处理 demo 数据幂等初始化问题。
-2. 再实现 `start-app-session.ps1`，让桌面快捷方式打开独立前端窗口并在关闭窗口后自动停止服务。
-3. 最后补志愿提交强校验和权限控制，避免持久化后脏数据长期留在库中。
+1. 补教师-班级关联模型，开放教师仅本班查询。
+2. 为录取算法补测试数据和单元测试，覆盖物理类/历史类、调剂、退档、分省名额、选科不符。
+3. 引入 Flyway/Liquibase，把当前 schema 演进固化成正式迁移。
+
+---
+
+## 十、最近一次验证记录
+
+验证时间：2026-09-01
+
+| 验证项 | 命令/方式 | 结果 |
+|------|----------|------|
+| 后端编译打包 | `D:\maven\apache-maven-3.9.16\bin\mvn.cmd -q -DskipTests package` | 通过 |
+| 前端生产构建 | `npm run build` | 通过；仅有 Vite 大 chunk 提示 |
+| PowerShell脚本语法 | Parser 检查 `start-app-session.ps1`、`stop-frontend.ps1`、`create-desktop-shortcuts.ps1` | 通过 |
+| 桌面快捷方式刷新 | `scripts/setup-desktop-shortcuts.ps1` | 已创建/覆盖到桌面 |
+| 后端运行状态 | 执行验证后调用 `scripts/stop-backend.ps1` | 已停止测试进程 |
+
+补充说明：
+- 前端构建第一次在受限沙箱内触发 esbuild `EPERM`，使用正常权限重新执行后通过。
+- `frontend/dist/` 是构建产物，已加入 `.gitignore`，不建议提交。
+- H2 文件库在 `backend/data/`，已加入 `.gitignore`，本地数据会保留但不进入版本库。
