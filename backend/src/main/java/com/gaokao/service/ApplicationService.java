@@ -8,6 +8,7 @@ import com.gaokao.entity.UniversityScoreLine;
 import com.gaokao.dto.ApplicationSubmitRequest;
 import com.gaokao.dto.RecommendResult;
 import com.gaokao.mapper.*;
+import com.gaokao.util.SubjectMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -147,16 +148,6 @@ public class ApplicationService {
         Student student = studentMapper.findById(studentId);
         Major major = majorMapper.findById(majorId);
         if (student == null || major == null) return false;
-        if (major.getSubjectReq() == null || major.getSubjectReq().isEmpty()) return true;
-        if (student.getSubjectCombo() == null || student.getSubjectCombo().isEmpty()) return false;
-
-        String[] requirements = major.getSubjectReq().split("[,、]");
-        String combo = student.getSubjectCombo();
-        for (String req : requirements) {
-            if (!combo.contains(req.trim())) {
-                return false;
-            }
-        }
-        return true;
+        return SubjectMatcher.isSubjectMatch(student.getSubjectCombo(), major.getSubjectReq());
     }
 }

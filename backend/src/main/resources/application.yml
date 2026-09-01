@@ -23,8 +23,9 @@ mybatis:
   type-aliases-package: com.gaokao.entity
   configuration:
     map-underscore-to-camel-case: true
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
 
 logging:
   level:
-    com.gaokao: debug
+    com.gaokao: info
+    org.mybatis: warn

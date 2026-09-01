@@ -3,10 +3,10 @@ package com.gaokao.service;
 import com.gaokao.entity.*;
 import com.gaokao.dto.DashboardData;
 import com.gaokao.mapper.*;
+import com.gaokao.util.SubjectMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -39,9 +39,8 @@ public class AdmissionService {
         admissionResultMapper.deleteAll();
         admissionLogMapper.deleteAll();
 
-        List<Student> students = studentMapper.findAllOrderByScore();
+        List<Student> students = buildAdmissionOrder(studentMapper.findAllOrderByScore());
         Map<Long, Map<Long, Integer>> majorAdmittedCount = new HashMap<>();
-        Map<Long, Integer> universityAdmittedCount = new HashMap<>();
 
         int admitted = 0;
         int unadmitted = 0;
@@ -60,18 +59,17 @@ public class AdmissionService {
             for (Application app : apps) {
                 Long universityId = app.getUniversityId();
                 List<ApplicationMajor> appMajors = applicationMajorMapper.findByApplicationId(app.getId());
+                appMajors.sort(Comparator.comparingInt(ApplicationMajor::getPriority));
 
                 for (ApplicationMajor am : appMajors) {
                     Long majorId = am.getMajorId();
                     Major major = majorMapper.findById(majorId);
                     if (major == null) continue;
 
-                    if (major.getSubjectReq() != null && !major.getSubjectReq().isEmpty()) {
-                        if (student.getSubjectCombo() == null || !isSubjectMatch(student.getSubjectCombo(), major.getSubjectReq())) {
-                            admissionLogMapper.insert(createLog(student.getId(), universityId, majorId,
-                                    "SKIP", "选科不符：专业要求" + major.getSubjectReq() + "，学生选科" + student.getSubjectCombo()));
-                            continue;
-                        }
+                    if (!SubjectMatcher.isSubjectMatch(student.getSubjectCombo(), major.getSubjectReq())) {
+                        admissionLogMapper.insert(createLog(student.getId(), universityId, majorId,
+                                "SKIP", "选科不符：专业要求" + major.getSubjectReq() + "，学生选科" + student.getSubjectCombo()));
+                        continue;
                     }
 
                     int quota = getQuota(majorId, student.getProvinceId());
@@ -81,7 +79,6 @@ public class AdmissionService {
 
                     if (currentCount < quota) {
                         majorAdmittedCount.get(majorId).put(student.getProvinceId(), currentCount + 1);
-                        universityAdmittedCount.put(universityId, universityAdmittedCount.getOrDefault(universityId, 0) + 1);
 
                         String courses = assignCourses(student.getId(), majorId);
                         saveResult(student.getId(), universityId, majorId, "ADMITTED", app.getPriority(), false, courses);
@@ -97,12 +94,12 @@ public class AdmissionService {
                 if (isAdmitted) break;
 
                 if (Boolean.TRUE.equals(app.getAcceptAdjust())) {
-                    Long adjustMajorId = findAdjustMajor(universityId, student.getProvinceId(), majorAdmittedCount, appMajors);
+                    Long adjustMajorId = findAdjustMajor(universityId, student.getProvinceId(), student.getSubjectCombo(),
+                            majorAdmittedCount, appMajors);
                     if (adjustMajorId != null) {
                         Major major = majorMapper.findById(adjustMajorId);
                         majorAdmittedCount.computeIfAbsent(adjustMajorId, k -> new HashMap<>())
                                 .put(student.getProvinceId(), majorAdmittedCount.get(adjustMajorId).getOrDefault(student.getProvinceId(), 0) + 1);
-                        universityAdmittedCount.put(universityId, universityAdmittedCount.getOrDefault(universityId, 0) + 1);
 
                         String courses = assignCourses(student.getId(), adjustMajorId);
                         saveResult(student.getId(), universityId, adjustMajorId, "ADMITTED", app.getPriority(), true, courses);
@@ -129,12 +126,29 @@ public class AdmissionService {
         return "录取完成：已录取 " + admitted + " 人，未录取 " + unadmitted + " 人";
     }
 
-    private boolean isSubjectMatch(String combo, String requirement) {
-        String[] reqs = requirement.split("[,、]");
-        for (String req : reqs) {
-            if (!combo.contains(req.trim())) return false;
-        }
-        return true;
+    private List<Student> buildAdmissionOrder(List<Student> students) {
+        Comparator<Student> byScoreDesc = Comparator
+                .comparing(Student::getTotalScore, Comparator.nullsLast(Comparator.reverseOrder()));
+        Comparator<Student> stableTieBreaker = byScoreDesc
+                .thenComparing(Student::getStudentNo, Comparator.nullsLast(String::compareTo))
+                .thenComparing(Student::getId, Comparator.nullsLast(Long::compareTo));
+
+        List<Student> ordered = new ArrayList<>();
+        ordered.addAll(filterAndSortByPrimary(students, SubjectMatcher.PHYSICS, stableTieBreaker));
+        ordered.addAll(filterAndSortByPrimary(students, SubjectMatcher.HISTORY, stableTieBreaker));
+        ordered.addAll(students.stream()
+                .filter(s -> SubjectMatcher.primarySubject(s.getSubjectCombo()) == null)
+                .sorted(stableTieBreaker)
+                .collect(Collectors.toList()));
+        return ordered;
+    }
+
+    private List<Student> filterAndSortByPrimary(List<Student> students, String primarySubject,
+                                                  Comparator<Student> comparator) {
+        return students.stream()
+                .filter(s -> primarySubject.equals(SubjectMatcher.primarySubject(s.getSubjectCombo())))
+                .sorted(comparator)
+                .collect(Collectors.toList());
     }
 
     private int getQuota(Long majorId, Long provinceId) {
@@ -144,7 +158,7 @@ public class AdmissionService {
         return major != null ? major.getTotalQuota() : 0;
     }
 
-    private Long findAdjustMajor(Long universityId, Long provinceId,
+    private Long findAdjustMajor(Long universityId, Long provinceId, String subjectCombo,
                                   Map<Long, Map<Long, Integer>> majorAdmittedCount,
                                   List<ApplicationMajor> excludeMajors) {
         List<Major> majors = majorMapper.findList(null, universityId, null);
@@ -152,6 +166,7 @@ public class AdmissionService {
 
         for (Major major : majors) {
             if (excludeIds.contains(major.getId())) continue;
+            if (!SubjectMatcher.isSubjectMatch(subjectCombo, major.getSubjectReq())) continue;
             int quota = getQuota(major.getId(), provinceId);
             int current = majorAdmittedCount
                     .computeIfAbsent(major.getId(), k -> new HashMap<>())
