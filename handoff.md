@@ -1,343 +1,395 @@
-# 高考平行志愿填报管理系统 — 交接文档
+# 黑龙江省 2026 年普通本科批投档模拟系统 - 交接文档
 
-## 一、项目概述
+更新时间：2026-09-02
 
-基于 Vue3 + Spring Boot + MyBatis + H2 的高考平行志愿填报管理系统，实现学生信息管理、大学院系专业维护、志愿填报、平行志愿录取分配、录取结果查询全流程。
+## 一、本次交接边界
 
-**PRD文档**：`PRD-GaoKaoZhiYuan-202607130038.md`  
-**详细说明**：`README.md`
+本轮只重写了 `README.md` 和 `handoff.md`，没有修改业务代码、数据库脚本、前端页面、Docker 配置或启动脚本，也没有重新运行测试。
 
----
+仓库当前仍是通用高考志愿原型，新目标与现有领域模型差距较大。下一次继续时，应以本文的“已确认目标”为准，不应根据旧文档中的 10 个院校志愿、3 个专业志愿、专业录取、智能推荐或 H2 方案继续扩展。
 
-## 二、项目结构
+## 二、最终产品定位
 
+系统定位为：**严格复现黑龙江省 2026 年普通本科批规则的省级投档模拟器**。
+
+业务主体只有：
+
+- 后台管理员：导入基础数据、配置填报时间和投档比例、执行投档、查询审计和导出结果。
+- 考生：登录、查看本人锁定信息、手动保存志愿、提交志愿、查看本人投档结果。
+
+明确下线：
+
+- 教师或班主任登录主体。
+- 考生自助注册。
+- 智能推荐、冲稳保推荐。
+- 兴趣课程和专业课程自动分配。
+- 省级投档之后的高校专业录取模拟。
+- 桌面页面关闭即停止后端的旧会话式启动逻辑。
+
+## 三、已确认的业务规则
+
+### 3.1 范围
+
+- 年份：2026 年。
+- 地区：黑龙江省。
+- 批次：普通本科批。
+- 暂不支持提前批、艺术类、体育类、专项计划和征集志愿。
+- 物理类和历史类使用各自控制线、计划和排序队列。
+- 再选科目允许化学、生物、政治、地理任意选择两门，合计 12 种合法组合。
+
+### 3.2 志愿模型
+
+- 每名考生最多填报 45 个院校专业组平行志愿。
+- 每个院校专业组保留 6 个专业志愿和服从专业调剂标志。
+- 专业志愿只用于保存和打印正式志愿表，不参与本系统省级投档结果计算。
+- 草稿允许保存选科不匹配项并明确标记；正式提交必须阻止选科不匹配项。
+- 体检、色觉、语种、单科成绩等专业限制只显示警告，不改变省级投档结果。
+- 坚持手动保存，不启用自动保存。
+- 页面有未保存修改时，刷新、关闭、退出或切换页面必须警告。
+
+### 3.3 提交与截止
+
+- 管理员在后台配置填报开始时间和截止时间，并记录配置审计。
+- 截止前考生可以修改并再次提交。
+- 截止时以最后一次成功提交版本为有效志愿。
+- 每次正式提交都保留不可覆盖的历史版本。
+- 考生可查看当前版本；管理员可审计全部版本。
+- 支持打印或导出最终正式志愿表。
+
+### 3.4 投档比例
+
+- 每个院校专业组保存独立投档比例。
+- 默认 100%。
+- 管理员允许在 100% 至 105% 范围内调整。
+- 投档名额计算规则必须集中实现并覆盖边界测试，不能散落在 Controller 或 SQL 中。
+
+### 3.5 排序规则
+
+物理类和历史类分别排序，依次比较：
+
+1. 文化课成绩与政策性照顾分值之和。
+2. 语文与数学成绩之和。
+3. 语文或数学单科最高成绩。
+4. 外语成绩。
+5. 首选科目成绩。
+6. 再选科目单科最高成绩。
+7. 再选科目单科次高成绩。
+8. 仍同分时比较志愿顺序；同一志愿顺序仍同分者全部投档，即使超过计划数。
+
+不得再使用旧版“总分、语文、数学、外语、学号、数据库 ID”的排序规则。
+
+### 3.6 一次投档
+
+- 分数优先、遵循志愿、一次投档。
+- 对考生的 45 个院校专业组志愿依次检索。
+- 一旦投档成功，本批次停止检索后续志愿。
+- 高校后续退档时，不再检索本批次后续志愿。
+- 结果状态固定为：已投档、未投档/滑档、未达控制线、无有效志愿。
+
+### 3.7 投档快照
+
+每次投档运行都创建不可变快照，至少包含：
+
+- 运行批次、操作者和时间。
+- 考生基础信息和各科成绩。
+- 当次生效志愿版本。
+- 院校专业组和招生计划。
+- 物理类、历史类控制线。
+- 各院校专业组投档比例。
+- 排序键、检索轨迹和最终状态。
+
+重新执行投档必须创建新运行版本，不得更新或删除旧运行结果。
+
+## 四、账号与安全决策
+
+### 4.1 考生账号
+
+- 账号由管理员通过 Excel 批量导入，不允许自助注册。
+- 用户名为 10 位准考证号。
+- 初始密码为身份证后六位。
+- 导入时只临时使用身份证信息生成密码哈希；长期只保留脱敏身份证信息。
+- 考生首次登录必须修改初始密码。
+- 同一考生只允许一个有效会话，新登录撤销旧会话。
+- 会话有效期为 2 小时。
+- 连续登录失败 5 次后锁定 15 分钟。
+- 密码修改、账号禁用或体验数据重置后，旧会话立即失效。
+
+### 4.2 管理员账号
+
+- 管理员账号和初始密码通过环境变量设置，不写入代码和 Git。
+- 管理员不要求首次登录后强制修改密码。
+- 后端仍应执行强密码校验。
+- 短期公网体验时，管理页面和管理 API 只允许本机访问。
+
+### 4.3 认证实现
+
+- 密码哈希使用 BCrypt。
+- 认证使用带过期时间的 JWT。
+- 需要服务端会话记录，以支持单设备登录、主动吊销和账号状态变更即时失效。
+- 不必为了低并发单机体验立即引入 Redis，可先用 PostgreSQL 保存会话，并保留后续替换空间。
+
+### 4.4 声明与日志
+
+- 考生首次登录必须确认“模拟结果仅供测试，不代表黑龙江省招生考试院正式投档结果”。
+- 保存声明版本与确认时间；声明升级后重新确认。
+- 日志滚动保留 7 天。
+- 日志不得记录明文密码、身份证信息、JWT、数据库密码或完整登录请求体。
+
+## 五、成绩与选科数据
+
+考生成绩至少保存：
+
+- 语文。
+- 数学。
+- 外语。
+- 首选科目及成绩。
+- 两门再选科目及成绩。
+- 政策性照顾分值。
+- 文化课总分。
+- 最终位次。
+
+考生不得自行修改姓名、准考证号、成绩、选科和位次。管理员导入后锁定这些字段。
+
+## 六、Excel 导入导出
+
+### 6.1 必须实现的导入
+
+- 考生账号及各科成绩。
+- 院校专业组、组内专业、选科要求、招生计划和投档比例。
+
+### 6.2 导入事务规则
+
+- 任何一行校验失败，整批拒绝并回滚。
+- 生成带原 Excel 行号、字段和失败原因的错误报告。
+- 重复准考证号采用覆盖更新，不新增重复账号。
+- 已提交正式志愿的考生禁止覆盖成绩和选科；发现后整批回滚。
+- 覆盖尚未提交志愿的账号时，保留其当前密码。
+
+### 6.3 必须实现的导出
+
+- Excel 导入模板。
+- 导入错误报告。
+- 考生最终志愿表打印或导出。
+- 投档运行结果和必要审计字段。
+
+## 七、数据库与运行模式
+
+### 7.1 数据库目标
+
+- 移除 H2 依赖和 H2 专用 SQL。
+- 开发、体验、正式环境全部使用 PostgreSQL。
+- 使用 Flyway 管理建表和后续迁移。
+- 自动化集成测试使用 Testcontainers PostgreSQL。
+- PostgreSQL 的 `5432` 不得暴露到公网。
+
+### 7.2 DEMO 模式
+
+- 使用虚构或匿名化数据。
+- 由项目生成包含 10 个体验账号的 Excel，由管理员导入。
+- 物理类 5 人、历史类 5 人。
+- 数据覆盖高分、控制线附近、控制线以下和同分排序场景。
+- 使用管理员单独设置的模拟填报时间，不受真实填报日期限制。
+- 后台提供一键重置体验数据，必须二次确认。
+- 重置时允许彻底删除测试账号及关联业务数据，再重新导入。
+
+### 7.3 PRODUCTION 模式
+
+- 前端不显示“彻底删除体验数据”入口。
+- 后端接口必须同时拒绝彻底删除，即使绕过前端直接调用也不能执行。
+- 真实账号和历史数据只能归档、备份，不能通过体验重置逻辑删除。
+
+### 7.4 持久化与备份
+
+- PostgreSQL 数据卷、导入文件和备份统一放在根目录 `data/`。
+- `data/` 必须由 `.gitignore` 排除。
+- 每次正常停止应用前执行 PostgreSQL 备份。
+- 备份放入 `data/backups/`，保留最近 30 份。
+- 必须先确认新备份成功，再清理最旧备份。
+- 备份失败时不得删除旧备份，并明确提示管理员。
+- 正式上线后增加异机或对象存储备份。
+
+## 八、短期公网体验部署
+
+### 8.1 已确认环境
+
+- 使用用户现有 Windows 电脑和 Docker Desktop。
+- Docker Desktop 使用 WSL2 Ubuntu 集成，不重复安装第二套 Docker Engine。
+- 最多约 10 人同时在线。
+- 电脑在体验期间保持开机、联网并关闭自动休眠。
+- 当前没有域名，使用 Cloudflare Quick Tunnel 的随机 HTTPS 地址。
+- 接受每次重启后公网地址发生变化。
+- 所有域名和隧道配置预留未来正式域名。
+
+### 8.2 目标容器结构
+
+```text
+Cloudflare Quick Tunnel
+        |
+仅考生端反向代理入口
+        |---- Vue 静态文件
+        |---- Spring Boot 考生 API
+                    |
+               PostgreSQL
+
+本机管理入口
+        |---- 管理页面
+        |---- Spring Boot 管理 API
 ```
-D:\git_projects\demo_HUAWEI\
-├── backend/          # Spring Boot 后端（Java 25, Spring Boot 3.3.6, MyBatis, H2）
-├── frontend/         # Vue3 前端（Vue3, Element Plus, ECharts, Pinia, Vite）
-├── PRD-*.md          # 产品需求文档
-└── README.md         # 详细项目说明
-```
 
-**Maven路径**：`D:\maven\apache-maven-3.9.16\bin\mvn.cmd`（系统未安装全局Maven，需用此路径）  
-**Java路径**：`D:\java\bin\java.exe`（Java 25.0.3）
+建议 Compose 服务：
 
----
+- `proxy`：Caddy 或 Nginx，区分本机管理入口与公网考生入口。
+- `frontend`：构建 Vue 静态资源。
+- `backend`：Spring Boot。
+- `postgres`：PostgreSQL，仅容器内网访问。
+- `cloudflared`：短期 Quick Tunnel。
 
-## 三、已完成的工作
+### 8.3 Start App 目标流程
 
-### 3.1 后端（60个Java源文件）
+1. 检查并启动 Docker Desktop。
+2. 等待 Docker Engine 就绪。
+3. 检查配置、端口和 `data/` 目录。
+4. 执行 `docker compose up -d`。
+5. 等待 PostgreSQL、后端和反向代理健康检查通过。
+6. 启动 Cloudflare Quick Tunnel。
+7. 从日志中提取临时公网 HTTPS 地址。
+8. 自动打开本机后台管理页面。
+9. 在启动窗口显示可分享的公网网址。
 
-- 15个实体类（entity）
-- 13个Mapper接口（含动态SQL）
-- 7个Service（含平行志愿录取算法、智能推荐、选科校验、注册）
-- 8个Controller（30+ API接口）
-- 5个DTO + 2个工具类 + 1个全局异常处理器
-- 数据库schema.sql + data.sql（15张表，含31省份、10所985大学、78个专业、5名示例学生等）
-- CORS跨域配置 + Token认证拦截器 + 全局异常处理
+不得恢复开机自启动。
 
-### 3.2 前端（11个Vue组件）
+### 8.4 Stop App 目标流程
 
-- 登录页、注册页、主布局（侧边栏+顶栏）
-- 学生管理、班级管理
-- 大学院系专业管理（三栏布局）
-- 分数线管理（省控线+投档线）
-- 志愿填报（含智能推荐、选科校验、草稿/提交）
-- 录取分配、录取查询
-- 数据看板（ECharts柱状图+饼图）
+1. 查询实时在线考生数量。
+2. 有在线考生时显示人数并要求二次确认。
+3. 停止接受新的写请求。
+4. 停止 Cloudflare Tunnel。
+5. 执行 PostgreSQL 一致性备份。
+6. 确认备份结果并轮转最近 30 份。
+7. 正常停止项目容器。
+8. 退出 Docker Desktop。
 
-### 3.3 核心功能
+不要通过关闭浏览器页面触发全局关机。
 
-- 平行志愿录取算法（分数优先+遵循志愿+调剂+退档）
-- 物理类/历史类分开录取，调剂录取同样校验选科
-- 智能推荐（冲/稳/保，基于历年投档线差值）
-- 新高考选科匹配校验
-- 分省招生计划
-- 兴趣课程→专业课程智能分配
-- 志愿草稿/正式提交
-- 用户注册（考生账号）
+### 8.5 实时在线定义
 
----
+- 考生页面每 10 秒发送一次心跳。
+- 连续 30 秒未收到心跳则判定离线。
+- 主动退出时立即离线。
+- 在线状态只用于停止程序前的提示，不作为投档或审计依据。
 
-## 四、已解决的关键问题
+## 九、当前代码与目标差距
 
-### 4.1 Lombok与Java 25不兼容
+| 模块 | 当前代码 | 目标状态 |
+|---|---|---|
+| 志愿结构 | 最多 10 所院校，每校 3 个专业 | 45 个院校专业组，每组 6 个专业 |
+| 投档层级 | 直接模拟到专业并处理调剂 | 只投档到院校专业组 |
+| 排序 | 总分、语文、数学、外语、学号、ID | 黑龙江 2026 完整同分规则 |
+| 数据库 | H2 文件库，PostgreSQL 仅 profile | 只使用 PostgreSQL + Flyway |
+| 认证 | 明文密码、内存 Token | BCrypt、JWT、会话吊销、单设备登录 |
+| 账号来源 | 当前仍有自助注册 | 仅管理员 Excel 导入 |
+| 推荐功能 | 智能推荐仍在代码和页面中 | 完全下线 |
+| 课程功能 | 兴趣课程和专业课程仍存在 | 完全下线 |
+| 提交语义 | 正式提交后锁定 | 截止前允许重新提交并保留版本 |
+| 投档结果 | 可重跑并覆盖风险 | 每次运行建立不可变快照 |
+| 导入导出 | 依赖存在，业务入口不完整 | 事务导入、错误报告、表格和结果导出 |
+| 部署 | 本地 Java/Vite 脚本 | Docker Compose + Quick Tunnel |
+| 停止逻辑 | 关闭独立窗口可停止服务 | 独立 Stop App，备份后停止并退出 Docker Desktop |
 
-**现象**：所有`@Data`注解生成的getter/setter找不到符号，100个编译错误  
-**原因**：Java 25过新，Lombok默认版本不支持  
-**解决**：升级Lombok到1.18.38，并在maven-compiler-plugin中显式配置annotationProcessorPaths
+## 十、下一次实施顺序
 
-### 4.2 H2保留字 `year` 导致建表失败
+这是跨领域模型、数据库和部署方式的重构，建议按以下阶段推进，不要在旧表结构上直接堆字段。
 
-**现象**：`score_line`和`university_score_line`两张表未创建，分数线页面500错误  
-**原因**：`year`是H2保留字，不能直接作为列名  
-**解决**：schema.sql和data.sql中所有`year`列改为双引号包裹`"year"`，Mapper SQL中同样改为`sl."year"`
+### P0-1 基线与迁移骨架
 
-### 4.3 H2不兼容MySQL的 `ON DUPLICATE KEY UPDATE`
+1. 运行现有后端测试和前端构建，记录改造前基线。
+2. 新增 Docker Compose PostgreSQL 开发环境。
+3. 引入 Flyway，建立 PostgreSQL 第一版结构。
+4. 引入 Testcontainers PostgreSQL，迁移关键测试。
+5. 删除 H2 和数据库方言兼容代码。
 
-**现象**：ProvinceQuotaMapper的insertOrUpdate语法错误  
-**原因**：H2不支持MySQL特有的`ON DUPLICATE KEY UPDATE`语法  
-**解决**：改为H2的`MERGE INTO ... KEY(...) VALUES(...)`
+验收：全新环境只依赖 Docker Desktop 即可建立 PostgreSQL，迁移和测试可重复执行。
 
-### 4.4 npm PowerShell执行策略
+### P0-2 领域模型重建
 
-**现象**：npm命令被PowerShell禁止执行  
-**解决**：`Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force`
+1. 建立考试年度、批次、科类、考生、分科成绩和控制线模型。
+2. 建立院校专业组、组内专业、选科要求、招生计划和投档比例模型。
+3. 建立志愿草稿、提交版本和 45 个志愿项模型。
+4. 建立投档运行、输入快照、检索轨迹和结果模型。
+5. 为外键、唯一键、版本号和关键查询补充约束与索引。
 
-### 4.5 H2文件数据库启动问题与当前策略（已更新）
+验收：数据库约束能够阻止跨科类计划、重复志愿顺序和快照被覆盖。
 
-**现象**：早期后端曾因 H2 文件锁冲突、`data.sql` 重复执行主键冲突导致启动失败。  
-**原因**：
-1. H2文件模式（`jdbc:h2:file`）在H2 Shell连接后生成lock文件，导致Spring Boot无法连接
-2. `sql.init.mode=always`每次启动都执行data.sql，第二次启动时INSERT主键冲突
-3. H2的AUTO_INCREMENT默认从1开始，与data.sql中手动插入的ID冲突
+### P0-3 投档引擎
 
-**当前解决方案**：
-1. H2已改回文件库：`jdbc:h2:file:./data/gaokao;DB_CLOSE_ON_EXIT=FALSE`，关闭后端后数据保存在 `backend/data/`
-2. Spring SQL初始化只自动执行 `schema.sql`，不再每次自动执行 `data.sql`
-3. 新增 `DemoDataInitializer`，仅在 H2 空库时导入示例数据，已有数据不覆盖
-4. 所有表的AUTO_INCREMENT设为`AUTO_INCREMENT(100)`或更大，避免与初始数据ID冲突
-5. `.gitignore` 已忽略 `backend/data/`、`data/` 和运行日志，避免提交本地数据库文件
+1. 实现物理类、历史类分队列。
+2. 实现完整同分排序键。
+3. 实现控制线、选科要求、45 志愿顺序和一次投档。
+4. 实现 100% 至 105% 投档比例及同分超计划投档。
+5. 实现四类结果状态和可解释检索轨迹。
+6. 使用固定数据集编写规则级测试。
 
-### 4.6 注册功能实现（本次新增）
+验收：相同快照重复运行得到完全一致结果；历史运行不被新运行修改。
 
-**需求**：考生账号注册
-**实现**：
-- 后端：`RegisterRequest` DTO + `AuthService.register()` + `AuthController.register()`
-- 学生注册：自动创建student记录并关联sys_user.student_id
-- 前端：`Register.vue`注册页面（考生字段、表单校验）
-- 路由：`/register`路由 + 登录页"立即注册"链接 + 路由守卫放行
-- 全局异常处理器：`GlobalExceptionHandler.java`，统一捕获RuntimeException返回友好错误信息
+### P0-4 账号、安全与权限
 
-### 4.7 轻量化启动脚本与桌面快捷方式（本次新增）
+1. 删除自助注册。
+2. 使用 BCrypt 迁移密码。
+3. 实现 JWT、服务端会话、2 小时过期和单设备登录。
+4. 实现登录失败锁定、密码修改和账号禁用后的会话撤销。
+5. 强制区分本机管理接口与公网考生接口。
+6. 增加日志脱敏和模拟用途声明。
 
-**需求**：减少每次手动启动后端/前端的成本，点击桌面快捷方式时才启动项目  
-**实现**：
-- 新增 `scripts/start-backend.ps1`：检查 8080 端口，已运行则直接退出，未运行则后台启动后端
-- 新增 `scripts/start-frontend.ps1`：检查 5173 端口，未运行则后台启动 Vite
-- 新增 `scripts/start-app.ps1`：一键启动后端、前端并打开 `http://localhost:5173`
-- 新增 `scripts/start-app-session.ps1`：会话式启动，打开独立前端窗口，关闭窗口后自动停止本次启动的前后端
-- 新增 `scripts/backend-status.ps1`、`scripts/stop-backend.ps1` 与 `scripts/stop-frontend.ps1`：查看/停止服务
-- 新增 `scripts/create-desktop-shortcuts.ps1`：创建桌面快捷方式
-- 新增 `scripts/setup-desktop-shortcuts.ps1`：一键创建桌面快捷方式
-- `Gaokao Start App` 快捷方式已改为指向 `start-app-session.ps1`
-- `scripts/setup-startup.ps1` 已调整为只创建桌面快捷方式，不再安装开机/登录自启动
-- 保留 `scripts/install-backend-startup.ps1` 和 `scripts/uninstall-backend-startup.ps1` 作为备用手动维护脚本
-- 后端日志降噪：关闭 MyBatis 控制台 SQL 日志，应用日志调整为 info
+验收：公网无法访问任何管理页面或管理 API，考生无法访问他人数据。
 
-### 4.8 录取算法合理性调整（本次新增）
+### P1-1 Excel 与体验数据
 
-**需求**：录取时按物理类和历史类分开处理，化学/生物/政治/地理可任意选择两门
-**实现**：
-- 新增 `SubjectMatcher`：统一处理选科标准化和匹配
-- 兼容 `物化生`、`史政地`、`物理、化学、生物` 等写法
-- 首选科目物理/历史作为硬约束；专业计划增加 `subjectType`，录取队列和计划名额均按物理类、历史类分开
-- 选科必须是“物理/历史二选一 + 化学/生物/政治/地理任选二”，覆盖全部12种组合，不再自动推断缺失科目
-- 每个队列内部按总分、语文、数学、外语降序排列，最后按学号和ID稳定排序
-- 专业志愿按 priority 处理，避免数据库返回顺序影响录取结果
-- 调剂专业也必须满足学生选科和本省招生名额
+1. 定义带版本号的 Excel 模板。
+2. 实现考生与成绩整批事务导入。
+3. 实现院校专业组与计划整批事务导入。
+4. 实现逐行错误报告和重复账号覆盖规则。
+5. 生成 10 个虚构体验账号数据，物理类和历史类各 5 个。
+6. 实现最终志愿表和投档结果导出。
 
-### 4.9 H2文件库持久化与PostgreSQL预留（本次新增）
+验收：故意制造任意一行错误时，数据库无任何部分写入。
 
-**需求**：关闭后端后保留本地数据，同时保留后续切换 PostgreSQL 的空间  
-**实现**：
-- `application.yml` 改为 H2 文件库：`jdbc:h2:file:./data/gaokao;DB_CLOSE_ON_EXIT=FALSE`
-- 新增 `application-postgresql.yml`，通过 `--spring.profiles.active=postgresql` 切换
-- PostgreSQL 用户名/密码支持 `GAOKAO_DB_USERNAME`、`GAOKAO_DB_PASSWORD` 环境变量
-- Spring SQL 初始化只执行 `schema.sql`，不再每次自动执行 `data.sql`
-- 新增 `DemoDataInitializer`：仅在 H2 空库时导入示例数据，已有数据不覆盖
-- `DemoDataInitializer` 会修复历史示例学生账号缺失 `student_id` 的问题
-- `.gitignore` 忽略 `backend/data/` 和 `data/`
+### P1-2 前端流程
 
-### 4.10 后端权限控制与志愿提交强校验（本次新增）
+1. 重做 45 个院校专业组志愿编辑器。
+2. 坚持手动保存并增加未保存离开警告。
+3. 实现截止前重复提交、版本查看和最终表打印。
+4. 实现管理员填报时间、计划、比例、导入和投档运行页面。
+5. 实现 DEMO 重置以及 PRODUCTION 双重禁用。
+6. 增加在线心跳和停止前在线人数接口。
 
-**需求**：按生产默认规则，不信任前端菜单和请求参数  
-**实现**：
-- 新增 `AuthContext`，统一解析当前登录用户和角色
-- 管理员才能执行录取、查看录取日志、维护学生/班级/院校/分数线/专业课程
-- 学生只能访问自己的学生信息、兴趣课程、志愿、推荐和录取结果
-- 学生访问他人数据返回 403
-- 成绩和学生基础资料只能由管理员维护，考生不能通过接口修改自己的分数
-- 系统主体收敛为后台管理员和考生，不再暴露第三类登录/注册入口
-- 志愿提交新增后端校验：最多10个院校志愿、每校最多3个专业、院校不重复、专业不重复、priority范围合法、专业必须属于对应院校、status只能为 `DRAFT` 或 `SUBMITTED`
-- 正式提交会预检选科匹配；`application.yml` 配置填报起止时间，窗口外后端拒绝保存和提交，前端同步锁定控件
+### P1-3 Docker 与公网体验
 
-### 4.11 系统主体收敛为后台管理员与考生（本次调整）
+1. 构建前端和后端镜像。
+2. 建立 PostgreSQL 持久卷、健康检查和网络隔离。
+3. 实现 Quick Tunnel，并预留正式域名配置。
+4. 重写 Start App、Stop App 和桌面快捷方式。
+5. 实现停止前备份、30 份轮转和失败保护。
+6. 验证 10 人并发、重启恢复和断网恢复。
 
-**现实判断**：当前系统更接近“后台统一管理 + 考生自主填报/查询”的真实使用模式，不再强行引入第三类登录主体。班级表中的 `teacher` 字段仅作为班主任姓名展示，不作为登录账号或权限边界。
+## 十一、下一次开始前检查
 
-**实现**：
-- 后端注册接口仅支持考生自助注册；非 `STUDENT` 角色注册会被拒绝
-- 后端登录接口仅允许 `ADMIN` 与 `STUDENT` 角色登录；历史文件库中若残留其他角色账号，也不能作为有效业务主体登录
-- 示例数据移除第三类测试账号
-- 前端登录页移除第三类测试账号提示
-- 前端注册页移除角色选择，只保留考生注册表单
-- 顶栏角色显示收敛为“管理员 / 考生”
-- README 和交接文档的后续规划移除第三类主体相关待办
-
----
-
-## 五、当前未解决的问题
-
-### 5.1 🟢 桌面快捷方式创建与刷新
-
-项目内脚本已完成，本机桌面快捷方式已刷新。由于桌面快捷方式属于用户目录，换机器或快捷方式丢失时再手动执行：
+下一次继续时先执行：
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUAWEI\scripts\setup-desktop-shortcuts.ps1
+git status --short
+
+cd backend
+D:\maven\apache-maven-3.9.16\bin\mvn.cmd test
+
+cd ..\frontend
+npm run build
 ```
 
-执行后会创建：
-- 桌面快捷方式：`Gaokao Start App`、`Gaokao Backend Status`、`Gaokao Stop Backend`
-- 当前 `Gaokao Start App` 指向 `scripts/start-app-session.ps1`，不是开机自启动
-- 已确认未安装登录/开机自启动任务；如后续误装，可执行 `scripts/uninstall-backend-startup.ps1`
+然后从 **P0-1 基线与迁移骨架** 开始。除非用户改变范围，不再继续完善 H2、旧专业录取、智能推荐、兴趣课程或自助注册。
 
-### 5.2 🟢 P0 自动化测试已建立
+## 十二、重要提醒
 
-已新增35项后端自动化测试，覆盖12种选科组合、物理/历史计划隔离、同分排序、调剂、退档、分省名额、时间窗口、草稿提交旁路、非法志愿和越权访问。后续仍可在 P2 增加前端 E2E 与数据库集成测试。
-
----
-
-## 六、待完成的功能清单
-
-| 优先级 | 功能 | 说明 |
-|--------|------|------|
-| P1 | 批量导入前端页面 | 后端已有EasyExcel依赖，需前端Excel上传组件 |
-| 🟡 P1 | 数据导出 | 录取结果导出Excel/CSV |
-| P1 | 志愿时间后台维护 | 当前由YAML/环境变量配置；后续增加管理页面和配置持久化 |
-| P2 | 分省同分规则 | 当前默认总分、语文、数学、外语；后续按省份配置细则 |
-| 🟢 P2 | JWT+Redis认证 | 替换当前内存Token方案 |
-| 🟢 P2 | 切换PostgreSQL | application.yml切换配置，data.sql需适配PG语法 |
-| 🟢 P2 | 移动端适配 | 响应式布局 |
-
----
-
-## 七、启动命令参考
-
-### 后端启动（推荐方式）
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUAWEI\scripts\start-backend.ps1
-```
-
-- 后端地址：http://localhost:8080
-- H2控制台：http://localhost:8080/h2-console（当前 JDBC URL: `jdbc:h2:file:./data/gaokao`，用户名：sa，密码：空）
-- 后端日志：`D:\git_projects\demo_HUAWEI\logs\backend.log`
-- **注意**：当前 H2 为文件模式，数据保存在 `D:\git_projects\demo_HUAWEI\backend\data\`
-
-### 前端启动
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUAWEI\scripts\start-frontend.ps1
-```
-
-- 前端地址：http://localhost:5173
-
-### 一键启动与桌面快捷方式
-
-```powershell
-# 会话式启动：打开独立前端窗口，关闭窗口后自动停止本次启动的前后端
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUAWEI\scripts\start-app-session.ps1
-
-# 兼容入口：启动后端、前端并打开默认浏览器，不跟踪窗口关闭
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUAWEI\scripts\start-app.ps1
-
-# 创建桌面快捷方式。点击 Gaokao Start App 时才启动项目
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUAWEI\scripts\setup-desktop-shortcuts.ps1
-
-# 如果之前手动安装过登录自启动，可用这条取消
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUAWEI\scripts\uninstall-backend-startup.ps1
-```
-
-### 测试账号
-
-| 角色 | 用户名 | 密码 |
-|------|--------|------|
-| 管理员 | admin | admin123 |
-| 学生 | 2024001 | 123456 |
-| 学生 | 2024002 | 123456 |
-
-也可通过注册页面创建新账号。
-
----
-
-## 八、关键文件修改清单
-
-| 文件 | 修改内容 |
-|------|----------|
-| `backend/pom.xml` | Lombok版本1.18.38 + annotationProcessorPaths配置 |
-| `backend/src/main/resources/application.yml` | H2改为文件库`jdbc:h2:file:./data/gaokao;DB_CLOSE_ON_EXIT=FALSE`，只自动执行schema |
-| `backend/src/main/resources/application-postgresql.yml` | **新增**：PostgreSQL profile，预留生产数据库切换 |
-| `backend/src/main/java/com/gaokao/config/DemoDataInitializer.java` | **新增**：H2空库才导入demo数据，并修复学生账号student_id关联 |
-| `backend/src/main/resources/db/schema.sql` | `year`列改为`"year"`，所有表AUTO_INCREMENT设为(100)或更大 |
-| `backend/src/main/resources/db/data.sql` | `year`列改为`"year"`，恢复为INSERT语法 |
-| `backend/src/main/java/com/gaokao/mapper/ScoreLineMapper.java` | SQL中`sl.year`改为`sl."year"` |
-| `backend/src/main/java/com/gaokao/mapper/UniversityScoreLineMapper.java` | SQL中`usl.year`改为`usl."year"` |
-| `backend/src/main/java/com/gaokao/mapper/ProvinceQuotaMapper.java` | `ON DUPLICATE KEY UPDATE`改为`MERGE INTO ... KEY(...)` |
-| `backend/src/main/java/com/gaokao/dto/RegisterRequest.java` | **新增**：注册请求DTO |
-| `backend/src/main/java/com/gaokao/service/AuthService.java` | **修改**：添加register()方法，注入StudentMapper |
-| `backend/src/main/java/com/gaokao/controller/AuthController.java` | **修改**：添加`/api/auth/register`接口 |
-| `backend/src/main/java/com/gaokao/config/GlobalExceptionHandler.java` | **新增**：全局异常处理器 |
-| `frontend/src/views/Register.vue` | **新增**：注册页面 |
-| `frontend/src/views/Login.vue` | **修改**：添加"立即注册"链接 |
-| `frontend/src/router/index.js` | **修改**：添加/register路由，路由守卫放行 |
-| `frontend/src/api/index.js` | **修改**：添加register API |
-| `frontend/src/utils/request.js` | 增强错误处理，区分401/500/404/网络异常 |
-| `scripts/*.ps1` | **新增**：轻量化启动、会话式启动、停止、状态检查、自启动安装、桌面快捷方式创建脚本 |
-| `scripts/start-app-session.ps1` | **新增**：点击启动独立前端窗口，关闭窗口后自动停止本次启动的前后端 |
-| `scripts/stop-frontend.ps1` | **新增**：停止监听 5173 端口的前端进程 |
-| `.gitignore` | 忽略运行日志目录 `logs/`、临时运行目录 `.runtime/`、H2文件库目录 `backend/data/` 和 `data/` |
-| `backend/src/main/java/com/gaokao/util/SubjectMatcher.java` | **新增**：统一选科标准化与匹配规则 |
-| `backend/src/main/java/com/gaokao/service/AdmissionService.java` | **修改**：物理类/历史类分开录取，调剂校验选科，专业志愿按priority处理 |
-| `backend/src/main/java/com/gaokao/service/ApplicationService.java` | **修改**：前端实时选科校验复用统一匹配规则 |
-| `backend/src/main/java/com/gaokao/service/ApplicationWindowService.java` | **新增**：统一计算填报窗口状态并阻止窗口外写入 |
-| `backend/src/test/java/com/gaokao/**` | **新增**：录取、选科、窗口、志愿校验和权限接口自动化测试 |
-| `backend/src/main/java/com/gaokao/util/AuthContext.java` | **新增**：统一当前用户解析和权限判断 |
-| `backend/src/main/java/com/gaokao/controller/*Controller.java` | **修改**：敏感查询和写操作接入后端角色权限 |
-| `backend/src/main/resources/db/schema.sql` | **修改**：补充关键外键、唯一约束和查询索引 |
-
----
-
-## 九、模块完善评估
-
-| 优先级 | 模块 | 当前状态 | 建议完善 |
-|------|------|----------|----------|
-| 已完成 P0 | 录取算法 | 物理/历史队列和专业计划隔离；总分及三门单科同分排序；调剂、退档、分省名额均有测试 | 后续按省份配置具体同分细则 |
-| 已完成 P0 | 志愿填报 | 后端强校验、填报时间窗口、提交预检、提交锁定均已完成 | P1增加管理员可视化时间配置 |
-| 已完成 P0 | 权限控制 | 管理员/考生强鉴权，考生不能改成绩或访问他人数据，已有接口测试 | P1升级认证安全 |
-| P1 | 数据库 | H2文件库已持久化，已预留PostgreSQL profile，已补关键约束和索引 | 引入Flyway/Liquibase管理正式迁移 |
-| P1 | 认证 | 内存Token、明文密码 | 密码BCrypt；Token改JWT；需要会话吊销再接Redis |
-| P1 | 导入导出 | 依赖已存在，业务入口未完成 | 做学生/院校/专业/计划Excel导入，录取结果CSV/Excel导出 |
-| P1 | 录取查询 | 能查结果和日志 | 增加未录取原因、调剂统计、导出入口 |
-| P2 | 数据看板 | 基础统计和图表可用 | 增加物理/历史分组、各省计划使用率、退档原因分布 |
-| P2 | 院校专业管理 | 三栏维护可用 | 增加批量维护、删除影响提示、选科要求模板 |
-| P2 | 前端体验 | 基础页面可用 | 优化移动端、分页、加载态、空状态、错误提示 |
-| P2 | 启动部署 | 已支持桌面快捷方式会话式启动，关闭独立前端窗口后可自动停止本次启动的前后端 | 增加健康检查页面、一键打包脚本、生产部署说明 |
-| P2 | 测试体系 | P0后端规则和权限已有自动化测试 | 增加数据库集成测试和前端关键流程E2E |
-
-### 推荐下一步实施顺序
-
-1. 引入 Flyway/Liquibase，把当前 schema 演进固化成正式迁移。
-2. 使用 BCrypt 存储密码，并将内存 Token 升级为带过期时间的 JWT。
-3. 完成学生、院校、专业与招生计划导入，以及录取结果导出。
-
----
-
-## 十、最近一次验证记录
-
-验证时间：2026-09-02
-
-| 验证项 | 命令/方式 | 结果 |
-|------|----------|------|
-| 后端自动化测试 | `mvn -q test` | 35项通过，0失败、0错误 |
-| 后端编译打包 | `D:\maven\apache-maven-3.9.16\bin\mvn.cmd -q -DskipTests package` | 通过 |
-| 前端生产构建 | `npm run build` | 通过；仅有 Vite 大 chunk 提示 |
-| 角色引用扫描 | 搜索第三类登录角色相关关键词 | 业务代码中已清理；仅保留班主任姓名示例数据 |
-| PowerShell脚本语法 | Parser 检查 `start-app-session.ps1`、`stop-frontend.ps1`、`create-desktop-shortcuts.ps1` | 通过 |
-| 桌面快捷方式刷新 | `scripts/setup-desktop-shortcuts.ps1` | 已创建/覆盖到桌面 |
-| 后端运行状态 | 执行验证后调用 `scripts/stop-backend.ps1` | 已停止测试进程 |
-
-补充说明：
-- 前端构建第一次在受限沙箱内触发 esbuild `EPERM`，使用正常权限重新执行后通过。
-- `frontend/dist/` 是构建产物，已加入 `.gitignore`，不建议提交。
-- H2 文件库在 `backend/data/`，已加入 `.gitignore`，本地数据会保留但不进入版本库。
+- 本文记录的是已确认需求，不代表功能已经实现。
+- 真实身份证、准考证号和成绩不得用于短期公网体验。
+- 不要提交 `data/`、备份、`.env`、JWT 密钥、数据库密码或体验账号明文密码。
+- 用户明确要求今天只更新文档，代码统一修改留到下一次会话。

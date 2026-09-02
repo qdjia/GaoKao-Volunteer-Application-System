@@ -1,636 +1,204 @@
-# 高考平行志愿填报管理系统
+# 黑龙江省 2026 年普通本科批投档模拟系统
 
-## 一、项目概述
+本项目正在从通用的高考志愿演示程序，升级为面向黑龙江省 2026 年普通本科批的省级投档模拟系统。系统只保留两个业务主体：后台管理员和考生。
 
-本系统是一个面向高考考生和管理人员的平行志愿填报与录取管理平台。系统实现了从学生信息管理、大学院系专业维护、志愿填报、平行志愿录取分配到录取结果查询的全流程覆盖。
+> 当前仓库仍处于旧版原型向目标架构迁移前的状态。本 README 同时记录“当前可运行能力”和“已确认但尚未实现的目标”，不能把目标能力视为已经完成。详细交接见 `handoff.md`。
 
-### 核心特性
+## 一、产品边界
 
-- **平行志愿录取算法**：严格遵循"分数优先、遵循志愿、一轮投档"原则，支持专业调剂与退档处理
-- **新高考选科匹配**：支持"3+1+2"选科组合校验，按物理类/历史类分开录取，化学/生物/政治/地理用于补足组合匹配
-- **智能志愿推荐**：基于学生分数与历年投档线数据，自动生成"冲/稳/保"志愿方案
-- **分省招生计划**：每个专业按省份设置不同招生名额，录取时按本省名额竞争
-- **兴趣课程关联**：录取后参照学生兴趣课程智能分配专业课程
-- **数据可视化看板**：ECharts 图表展示录取统计与分数段分布
-- **志愿草稿机制**：支持多次保存草稿、正式提交后锁定不可修改
-- **用户注册**：支持考生自助注册，注册后自动创建学籍信息
+目标系统严格模拟黑龙江省 2026 年普通本科批省级投档过程：
 
----
+- 物理类和历史类分别排序、分别投档。
+- 普通本科批设置 45 个院校专业组平行志愿。
+- 每个院校专业组保留 6 个专业志愿和是否服从专业调剂。
+- 系统只模拟省级投档到院校专业组，不模拟高校内部专业录取。
+- 首选科目为物理或历史；再选科目从化学、生物、政治、地理中任选两门。
+- 暂不包含提前批、艺术类、体育类、专项计划、征集志愿等特殊场景。
+- 下线智能推荐、兴趣课程和专业课程自动分配功能。
+- 所有页面必须明确说明：模拟结果不代表黑龙江省招生考试院正式投档结果。
 
-## 二、技术栈
+参考规则：
 
-| 层级 | 技术 | 版本 |
-|------|------|------|
-| 前端框架 | Vue3 | 3.4+ |
-| UI组件库 | Element Plus | 2.9+ |
-| 状态管理 | Pinia | 2.2+ |
-| 路由 | Vue Router | 4.3+ |
-| 图表 | ECharts | 5.5+ |
-| 构建工具 | Vite | 5.4+ |
-| 后端框架 | Spring Boot | 3.3.6 |
-| ORM | MyBatis | 3.0.4 (Spring Boot Starter) |
-| 开发数据库 | H2 | 文件模式（本地持久化） |
-| 生产数据库 | PostgreSQL | - |
-| JDK | Java | 17+ |
-| Node.js | - | 18+ |
+- [黑龙江省 2026 年普通高等学校招生工作规定](https://gaokao.chsi.com.cn/gkxx/zc/ss/202604/20260429/2293463207-11.html)
+- [黑龙江省政府相关招生信息](https://www.hlj.gov.cn/hljapp/c116058/202604/c00_31936434.shtml)
 
----
+## 二、当前仓库状态
 
-## 三、项目结构
+### 已实现
 
-```
-demo_HUAWEI/
-├── PRD-GaoKaoZhiYuan-202607130038.md   # 产品需求文档
-├── README.md                            # 本文件
-├── scripts/                              # Windows 轻量启动脚本与桌面快捷方式脚本
-│
-├── backend/                             # 后端（Spring Boot）
-│   ├── pom.xml                          # Maven 依赖配置
-│   ├── mvnw.cmd                         # Maven Wrapper（Windows）
-│   ├── .mvn/wrapper/
-│   │   └── maven-wrapper.properties     # Wrapper 配置
-│   └── src/main/
-│       ├── java/com/gaokao/
-│       │   ├── GaokaoApplication.java        # 启动类
-│       │   ├── config/
-│       │   │   ├── CorsConfig.java           # 跨域配置
-│       │   │   ├── WebMvcConfig.java         # 拦截器注册
-│       │   │   └── GlobalExceptionHandler.java # 全局异常处理
-│       │   ├── entity/                       # 实体类（15个）
-│       │   │   ├── SysUser.java              # 系统用户
-│       │   │   ├── Student.java              # 学生
-│       │   │   ├── ClassInfo.java            # 班级
-│       │   │   ├── University.java           # 大学
-│       │   │   ├── Department.java           # 院系
-│       │   │   ├── Major.java                # 专业
-│       │   │   ├── Province.java             # 省份
-│       │   │   ├── ProvinceQuota.java        # 分省招生计划
-│       │   │   ├── ScoreLine.java            # 省控线
-│       │   │   ├── UniversityScoreLine.java  # 大学投档线
-│       │   │   ├── InterestCourse.java       # 兴趣课程
-│       │   │   ├── MajorCourse.java          # 专业课程
-│       │   │   ├── Application.java          # 志愿
-│       │   │   ├── ApplicationMajor.java     # 志愿专业
-│       │   │   ├── AdmissionResult.java      # 录取结果
-│       │   │   └── AdmissionLog.java         # 录取日志
-│       │   ├── mapper/                       # MyBatis Mapper（13个）
-│       │   ├── service/                      # 业务逻辑层（7个）
-│       │   │   ├── AuthService.java          # 认证服务
-│       │   │   ├── StudentService.java       # 学生服务
-│       │   │   ├── ClassInfoService.java     # 班级服务
-│       │   │   ├── UniversityService.java    # 院校服务
-│       │   │   ├── ScoreLineService.java     # 分数线服务
-│       │   │   ├── ApplicationService.java   # 志愿服务（含推荐+选科校验）
-│       │   │   ├── AdmissionService.java     # 录取服务（核心算法）
-│       │   │   └── MajorCourseService.java   # 专业课程服务
-│       │   ├── controller/                   # 接口层（8个）
-│       │   │   ├── AuthController.java       # /api/auth
-│       │   │   ├── StudentController.java    # /api/students
-│       │   │   ├── ClassInfoController.java  # /api/classes
-│       │   │   ├── UniversityController.java # /api/universities
-│       │   │   ├── ScoreLineController.java  # /api/score-lines
-│       │   │   ├── ApplicationController.java # /api/applications
-│       │   │   ├── AdmissionController.java  # /api/admission
-│       │   │   └── CommonController.java     # /api/common
-│       │   ├── dto/                          # 数据传输对象
-│       │   │   ├── LoginRequest.java
-│       │   │   ├── RegisterRequest.java
-│       │   │   ├── ApplicationSubmitRequest.java
-│       │   │   ├── RecommendResult.java
-│       │   │   └── DashboardData.java
-│       │   └── util/                         # 工具类
-│       │       ├── Result.java               # 统一响应封装
-│       │       └── AuthInterceptor.java      # Token认证拦截器
-│       └── resources/
-│           ├── application.yml               # 应用配置
-│           └── db/
-│               ├── schema.sql                # 建表语句（15张表）
-│               └── data.sql                  # 示例数据
-│
-└── frontend/                            # 前端（Vue3）
-    ├── package.json                     # 依赖配置
-    ├── vite.config.js                   # Vite配置（含API代理）
-    ├── index.html                       # 入口HTML
-    └── src/
-        ├── main.js                      # 应用入口
-        ├── App.vue                      # 根组件
-        ├── router/
-│           └── index.js                 # 路由配置（9个页面 + 权限守卫）
-        ├── stores/
-        │   └── user.js                  # 用户状态（Pinia）
-        ├── api/
-│       └── index.js                 # 统一API封装（30+接口）
-        ├── utils/
-        │   └── request.js               # Axios封装（Token注入 + 错误处理）
-        ├── layout/
-        │   └── MainLayout.vue           # 侧边栏+顶栏布局
-        └── views/
-            ├── Login.vue                # 登录页
-            ├── Register.vue             # 注册页
-            ├── student/
-            │   ├── StudentList.vue      # 学生信息管理
-            │   └── ClassList.vue        # 班级管理
-            ├── university/
-            │   ├── UniversityList.vue   # 大学院系专业管理
-            │   └── ScoreLineList.vue    # 分数线管理
-            ├── application/
-            │   └── ApplicationForm.vue  # 志愿填报
-            └── admission/
-                ├── Dashboard.vue        # 数据看板
-                ├── AdmissionProcess.vue # 录取分配
-                └── AdmissionQuery.vue   # 录取查询
-```
+- Vue 3 + Element Plus 管理端和考生端原型。
+- Spring Boot 3.3.6 + MyBatis 后端。
+- 管理员与考生基础权限隔离。
+- H2 文件数据库本地持久化，并预留 PostgreSQL profile。
+- 物理类与历史类分开处理，支持 12 种合法选科组合校验。
+- 志愿草稿、提交、填报时间窗口和基础投档流程。
+- 本地 PowerShell 启停脚本与桌面快捷方式。
+- 35 项后端自动化测试曾于 2026-09-02 验证通过。
 
----
+### 尚未实现
 
-## 四、数据库设计
+- 黑龙江省 2026 年完整投档模型：45 个院校专业组、6 个专业志愿和精确同分规则。
+- 院校专业组、投档比例、不可变投档快照和结果版本。
+- PostgreSQL 唯一数据库、Flyway 迁移和 Testcontainers PostgreSQL 测试。
+- BCrypt、JWT、会话吊销、单设备登录和登录限流。
+- 管理员 Excel 批量导入、错误报告和结果导出。
+- 体验模式、正式模式、体验数据重置和备份策略。
+- Docker Compose、Cloudflare Quick Tunnel 和新的桌面启停流程。
+- 仅本机开放后台管理、仅公网开放考生端的访问隔离。
 
-### 4.1 ER关系概览
+## 三、当前技术栈
 
-```
-Province ──1:N── ClassInfo ──1:N── Student ──1:N── InterestCourse
-    │                              │
-    │                              ├──1:N── Application ──1:N── ApplicationMajor
-    │                              │
-    └──1:N── University ──1:N── Department ──1:N── Major ──1:N── MajorCourse
-                  │                                        │
-                  └──1:N── UniversityScoreLine             └──1:N── ProvinceQuota
+| 层级 | 当前技术 |
+|---|---|
+| 前端 | Vue 3、Vite、Pinia、Vue Router、Element Plus、Axios、ECharts |
+| 后端 | Java 17+、Spring Boot 3.3.6、MyBatis、Bean Validation |
+| 当前数据库 | H2 文件数据库 |
+| 目标数据库 | PostgreSQL |
+| 数据处理 | Apache POI、EasyExcel |
+| 当前启动 | PowerShell 脚本，本地后端与 Vite 开发服务器 |
+| 目标部署 | Docker Desktop、WSL2 Ubuntu、Docker Compose、Cloudflare Quick Tunnel |
 
-ScoreLine (省控线，独立表)
-AdmissionResult (录取结果，关联 Student/University/Major)
-AdmissionLog (录取日志)
-SysUser (系统用户)
-```
+## 四、当前本地启动
 
-### 4.2 核心数据表
+当前代码尚未完成 Docker 化，仍使用现有脚本启动。
 
-| 表名 | 说明 | 关键字段 |
-|------|------|----------|
-| sys_user | 系统用户 | username, password, role, student_id |
-| province | 省份 | name |
-| class_info | 班级 | name, grade, teacher, province_id |
-| student | 学生 | student_no, name, total_score, subject_combo, province_id, class_id |
-| university | 大学 | name, type(985/211/普通), province_id, batch |
-| department | 院系 | name, university_id |
-| major | 专业 | name, department_id, subject_req, total_quota |
-| province_quota | 分省招生计划 | major_id, province_id, quota |
-| score_line | 省控线 | province_id, year, batch, subject_type, score |
-| university_score_line | 大学投档线 | university_id, province_id, year, major_id, min_score, avg_score |
-| interest_course | 兴趣课程 | student_id, name |
-| major_course | 专业课程 | major_id, name |
-| application | 志愿 | student_id, university_id, priority, accept_adjust, status |
-| application_major | 志愿专业 | application_id, major_id, priority |
-| admission_result | 录取结果 | student_id, university_id, major_id, status, is_adjusted, reason |
-| admission_log | 录取日志 | student_id, university_id, major_id, action, detail |
+### 环境要求
 
-### 4.3 示例数据规模
+- JDK 17 或更高版本
+- Maven 3.8 或更高版本
+- Node.js 18 或更高版本
+- npm 9 或更高版本
 
-| 数据项 | 数量 |
-|--------|------|
-| 省份 | 31个 |
-| 大学 | 10所（985） |
-| 院系 | 30个 |
-| 专业 | 78个 |
-| 学生 | 5名 |
-| 分省招生计划 | 156条 |
-| 历年分数线 | 若干条 |
-| 专业课程 | 若干条 |
-
----
-
-## 五、API接口文档
-
-### 5.1 认证接口
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | /api/auth/login | 登录（返回token） |
-| POST | /api/auth/register | 考生注册 |
-| POST | /api/auth/logout | 退出登录 |
-| GET | /api/auth/info | 获取当前用户信息 |
-
-### 5.2 学生管理
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | /api/students | 学生列表（支持name/studentNo/classId/provinceId筛选） |
-| GET | /api/students/{id} | 学生详情 |
-| POST | /api/students | 新增/编辑学生 |
-| DELETE | /api/students/{id} | 删除学生 |
-| GET | /api/students/{id}/interest-courses | 获取兴趣课程 |
-| POST | /api/students/{id}/interest-courses | 保存兴趣课程 |
-
-### 5.3 班级管理
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | /api/classes | 班级列表 |
-| GET | /api/classes/all | 全部班级（下拉选择用） |
-| GET | /api/classes/{id} | 班级详情 |
-| POST | /api/classes | 新增/编辑班级 |
-| DELETE | /api/classes/{id} | 删除班级 |
-
-### 5.4 院校管理
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | /api/universities | 大学列表（支持name/type/provinceId筛选） |
-| GET | /api/universities/{id} | 大学详情 |
-| POST | /api/universities | 新增/编辑大学 |
-| DELETE | /api/universities/{id} | 删除大学 |
-| GET | /api/universities/{universityId}/departments | 某大学院系列表 |
-| POST | /api/universities/departments | 新增/编辑院系 |
-| DELETE | /api/universities/departments/{id} | 删除院系 |
-| GET | /api/universities/majors | 专业列表（支持departmentId/universityId/name筛选） |
-| GET | /api/universities/majors/{id} | 专业详情 |
-| POST | /api/universities/majors | 新增/编辑专业 |
-| DELETE | /api/universities/majors/{id} | 删除专业 |
-| GET | /api/universities/majors/{majorId}/quotas | 专业的分省招生计划 |
-| POST | /api/universities/majors/quotas | 保存分省招生计划 |
-
-### 5.5 分数线
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | /api/score-lines/provincial | 省控线查询 |
-| POST | /api/score-lines/provincial | 新增/编辑省控线 |
-| DELETE | /api/score-lines/provincial/{id} | 删除省控线 |
-| GET | /api/score-lines/university | 大学投档线查询 |
-| POST | /api/score-lines/university | 新增/编辑投档线 |
-| DELETE | /api/score-lines/university/{id} | 删除投档线 |
-
-### 5.6 志愿填报
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | /api/applications/student/{studentId} | 查询学生志愿 |
-| POST | /api/applications/submit | 提交/保存志愿（草稿或正式） |
-| POST | /api/applications/student/{studentId}/submit-draft | 将草稿正式提交 |
-| GET | /api/applications/recommend/{studentId} | 智能推荐（冲稳保） |
-| GET | /api/applications/check-subject | 选科匹配校验 |
-
-### 5.7 录取管理
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | /api/admission/execute | 执行录取分配 |
-| GET | /api/admission/results | 录取结果查询（支持universityId/studentId/status/classId筛选） |
-| GET | /api/admission/student/{studentId} | 按学生查询录取结果 |
-| GET | /api/admission/logs | 录取日志 |
-| GET | /api/admission/dashboard | 数据看板统计 |
-
-### 5.8 公共接口
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | /api/common/provinces | 省份列表 |
-| GET | /api/common/majors/{majorId}/courses | 专业课程列表 |
-| POST | /api/common/majors/{majorId}/courses | 保存专业课程 |
-
-### 5.9 统一响应格式
-
-```json
-{
-  "code": 200,
-  "message": "success",
-  "data": {}
-}
-```
-
----
-
-## 六、核心算法说明
-
-### 6.1 平行志愿录取算法
-
-```
-输入：所有已提交志愿的学生
-
-将学生按首选科目分为物理类、历史类，分别建立录取队列
-每个队列内部按总分、语文、数学、外语降序排列；最后按学号和ID稳定排序
-
-FOR 每个录取队列 Q（物理类 -> 历史类）:
-  FOR 每位学生 S（从高分到低分）:
-    FOR 每个志愿 V（第1志愿 -> 第10志愿）:
-        大学 U = V.大学
-
-        // 第一阶段：按专业志愿顺序录取
-        FOR 每个专业志愿 M（专业1 -> 专业3）:
-            IF M的选科要求与学生选科不符:
-                记录日志"选科不符"，跳过
-            ELSE IF M在本省尚有招生余额:
-                录取 S 至 U 的 M 专业
-                根据兴趣课程分配专业课程
-                该生录取完成，跳出所有循环
-
-        // 第二阶段：调剂录取
-        IF 三个专业均未录取 AND 学生同意调剂:
-            在 U 中查找本省尚有余额且选科匹配的其他专业
-            IF 存在:
-                调剂录取至该专业
-                该生录取完成
-            ELSE:
-                退档，继续检索下一志愿
-
-        IF 三个专业均未录取 AND 学生不同意调剂:
-            退档，继续检索下一志愿
-
-    IF 所有志愿均未录取:
-        标记为"未录取"
-```
-
-### 6.1.1 选科匹配规则
-
-- 首选科目按物理类、历史类分开录取，专业要求中的物理/历史为硬约束
-- 每个专业招生计划必须指定物理类或历史类，未填写额外要求时也不会跨科类占用名额
-- 化学、生物、政治、地理为再选科目，按专业要求进行包含匹配
-- 有效组合必须是物理/历史二选一，再从化学、生物、政治、地理中任选两门，共12种组合
-- 学生选科和专业要求同时兼容简称与全称，例如 `物化生`、`史政地`、`物理、化学、生物`
-- 如果学生只填写了 `物理` 或 `历史`，系统会从化学、生物、政治、地理中补足两门再参与匹配
-- 正常专业录取和调剂录取使用同一套选科匹配规则
-
-### 6.2 智能推荐算法
-
-基于学生高考总分与目标省份2024年各大学投档最低分之差（diff），划分推荐等级：
-
-| diff 范围 | 推荐等级 | 含义 |
-|-----------|----------|------|
-| diff >= 30 | 保底 | 分数远超投档线，录取概率极高 |
-| 10 <= diff < 30 | 稳妥 | 分数高于投档线，录取概率较高 |
-| -5 <= diff < 10 | 冲刺 | 分数接近投档线，有一定风险 |
-| diff < -5 | 难度较大 | 分数低于投档线，录取概率低 |
-
-### 6.3 专业课程分配算法
-
-录取至某专业后，系统参照学生登记的兴趣课程与该专业的课程列表进行匹配：
-
-1. 遍历专业课程列表，检查课程名是否与学生兴趣课程名存在包含关系
-2. 优先分配匹配的兴趣相关课程
-3. 剩余名额从其他专业课程中补充
-4. 每名学生最多分配3门专业课程
-
----
-
-## 七、启动与部署
-
-### 7.1 环境要求
-
-| 依赖 | 最低版本 | 说明 |
-|------|----------|------|
-| JDK | 17 | 后端运行环境 |
-| Maven | 3.8 | 后端构建工具 |
-| Node.js | 18 | 前端运行环境 |
-| npm | 9 | 前端包管理 |
-
-### 7.2 推荐启动方式
-
-日常使用推荐创建桌面快捷方式。快捷方式只在点击时启动项目，不会开机自启动。
+### 桌面快捷方式
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUAWEI\scripts\setup-desktop-shortcuts.ps1
 ```
 
-执行后桌面会生成：
+当前快捷方式只在点击后启动程序，不是开机自启动。
 
-| 快捷方式 | 作用 |
-|------|------|
-| Gaokao Start App | 启动后端、启动前端并打开独立系统窗口；关闭窗口后自动停止本次启动的服务 |
-| Gaokao Backend Status | 检查后端是否运行 |
-| Gaokao Stop Backend | 停止后端服务 |
-
-也可以直接运行脚本：
+### 手动启动
 
 ```powershell
-# 会话式启动：打开独立系统窗口，关闭窗口后自动停止本次启动的前后端
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUAWEI\scripts\start-app-session.ps1
-
-# 兼容入口：启动后端、前端并打开默认浏览器，不跟踪窗口关闭
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUAWEI\scripts\start-app.ps1
-
-# 只启动后端
+# 后端
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUAWEI\scripts\start-backend.ps1
 
-# 只启动前端
+# 前端
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUAWEI\scripts\start-frontend.ps1
 ```
 
-- 后端地址：http://localhost:8080
-- 前端地址：http://localhost:5173
+当前地址：
+
+- 前端：`http://localhost:5173`
+- 后端：`http://localhost:8080`
+- H2 控制台：`http://localhost:8080/h2-console`
+- H2 数据：`backend/data/`
 - 后端日志：`logs/backend.log`
-- 启动脚本会先检查端口，已运行时不会重复启动
-- 会话式启动器会优先使用 Edge/Chrome 的独立 app 窗口；如果服务在启动前已经运行，关闭窗口时不会误关已有服务
-- **注意**：H2 使用文件模式，数据保存在 `backend/data/`，重启后仍会保留
 
-### 7.3 后端手动启动
+## 五、当前构建与测试
 
-```bash
+```powershell
+# 后端测试
 cd backend
-mvn clean package -DskipTests
-java -jar target/gaokao-zhiyuan-1.0.0.jar
-```
+D:\maven\apache-maven-3.9.16\bin\mvn.cmd test
 
-- 启动时自动执行 schema.sql 建表/补约束；仅在空库时导入 data.sql 示例数据
-- 后端地址：http://localhost:8080
-- H2控制台：http://localhost:8080/h2-console
-  - JDBC URL：jdbc:h2:file:./data/gaokao
-  - 用户名：sa，密码：空
-- **注意**：H2为文件模式，数据保存在 `backend/data/`
+# 后端打包
+D:\maven\apache-maven-3.9.16\bin\mvn.cmd -DskipTests package
 
-### 7.4 前端手动启动
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-- 前端地址：http://localhost:5173
-- Vite 已配置代理，/api 请求自动转发至后端 localhost:8080
-
-### 7.5 生产部署
-
-**后端打包：**
-
-```bash
-cd backend
-mvn clean package -DskipTests
-java -jar target/gaokao-zhiyuan-1.0.0.jar
-```
-
-**前端打包：**
-
-```bash
-cd frontend
+# 前端构建
+cd ..\frontend
 npm run build
 ```
 
-打包产物在 frontend/dist/，可部署至 Nginx 等 Web 服务器。
+## 六、目标投档规则
 
-**切换至 PostgreSQL：**
+### 考生排序
 
-项目已预留 `application-postgresql.yml`。启动时指定 profile：
+物理类和历史类分别建立队列。按以下顺序比较：
 
-```bash
-java -jar target/gaokao-zhiyuan-1.0.0.jar --spring.profiles.active=postgresql
+1. 高考文化课成绩与政策性照顾分值之和。
+2. 语文与数学两科成绩之和。
+3. 语文或数学单科最高成绩。
+4. 外语成绩。
+5. 首选科目成绩。
+6. 再选科目单科最高成绩。
+7. 再选科目单科次高成绩。
+8. 仍同分时比较考生志愿顺序；同一志愿顺序仍同分者全部投档，允许超过计划数。
+
+### 投档过程
+
+- 分数优先、遵循志愿、一次投档。
+- 按考生的 45 个院校专业组志愿依次检索。
+- 不满足首选科目、再选科目或本科控制线时，不进入对应投档队列。
+- 每个院校专业组保存投档比例，默认 100%，管理员可在 100% 至 105% 之间调整。
+- 一旦投档到某院校专业组，本批次停止检索后续志愿。
+- 高校后续退档不再继续检索本批次后续志愿。
+- 专业体检、色觉、语种和单科成绩限制只做风险提示，不参与省级投档计算。
+
+结果状态统一为：`已投档`、`未投档/滑档`、`未达控制线`、`无有效志愿`。
+
+## 七、目标账号与数据规则
+
+- 不开放考生自助注册，账号由管理员 Excel 批量导入。
+- 登录账号为 10 位准考证号。
+- 初始密码取虚构身份证号后六位，正式数据导入后只保留脱敏身份证信息和密码哈希。
+- 考生首次登录必须修改初始密码；管理员不强制首次修改密码。
+- 密码使用 BCrypt，登录使用 2 小时过期 JWT。
+- 考生同一时间只允许一个有效会话。
+- 连续登录失败 5 次锁定 15 分钟。
+- 密码修改、账号禁用或体验数据重置后立即撤销旧会话。
+- 志愿坚持手动保存；有未保存修改时，离开页面必须提示。
+
+Excel 导入采用整批事务：任何一行失败则整批回滚并生成逐行错误报告。重复准考证号采用更新模式，但已提交正式志愿的账号禁止覆盖成绩和选科；未提交账号更新时保留当前密码。
+
+## 八、目标数据与审计
+
+- 开发、体验和正式环境统一使用 PostgreSQL，移除 H2。
+- 使用 Flyway 管理数据库迁移。
+- 每次志愿提交保存不可覆盖的版本记录。
+- 截止时间以最后一次成功提交的版本为准，截止前仍可修改并重新提交。
+- 每次投档生成不可变快照，包含考生、成绩、志愿、计划、控制线和投档比例。
+- 新投档不得覆盖旧结果。
+- 数据库备份保存到项目根目录 `data/backups/`，保留最近 30 份。
+- 日志保留 7 天，并脱敏密码、身份证信息、JWT 和数据库密钥。
+
+## 九、短期公网体验方案
+
+已确定使用现有电脑，不购买云服务器：
+
+```text
+公网体验者
+    |
+Cloudflare Quick Tunnel 临时 HTTPS 地址
+    |
+Windows + Docker Desktop + WSL2 Ubuntu
+    |
+反向代理 -> Vue / Spring Boot -> PostgreSQL
 ```
 
-PostgreSQL 配置可通过环境变量覆盖：
+- 预计最多 10 人同时在线。
+- 使用 10 个独立体验账号，物理类 5 个、历史类 5 个。
+- 体验账号和虚构数据由项目生成 Excel，再由管理员导入。
+- 临时网址允许在重启后变化，并预留未来绑定正式域名的配置。
+- 公网只开放考生端和必要 API；管理页面与管理接口只允许本机访问。
+- 电脑需保持开机、联网并关闭自动休眠。
 
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/gaokao
-    driver-class-name: org.postgresql.Driver
-    username: ${GAOKAO_DB_USERNAME:postgres}
-    password: ${GAOKAO_DB_PASSWORD:postgres}
-  sql:
-    init:
-      mode: never
+目标 `Start App` 流程：启动 Docker Desktop、启动 Compose、建立 Quick Tunnel、打开本机管理页面并显示公网网址。
+
+目标 `Stop App` 流程：检查实时在线人数、二次确认、停止隧道、备份 PostgreSQL、停止项目容器并退出 Docker Desktop。在线状态采用 10 秒心跳、30 秒超时。
+
+## 十、仓库结构
+
+```text
+demo_HUAWEI/
+├── backend/       Spring Boot 后端
+├── frontend/      Vue 3 前端
+├── scripts/       当前 Windows 启停脚本
+├── data/          目标运行数据与备份目录，不进入 Git
+├── README.md      项目说明和目标边界
+└── handoff.md     下一阶段实施交接
 ```
 
-**注意**：当前开发环境使用 H2 文件库（`jdbc:h2:file:./data/gaokao;DB_CLOSE_ON_EXIT=FALSE`）。切换 PostgreSQL 后不会自动执行 H2 的 schema/data 初始化，后续建议引入 Flyway 或 Liquibase 管理生产库表结构。
+## 十一、下一阶段
 
----
-
-## 八、测试账号
-
-| 角色 | 用户名 | 密码 | 对应学生 |
-|------|--------|------|----------|
-| 管理员 | admin | admin123 | - |
-| 学生 | 2024001 | 123456 | 张三（680分，物化生） |
-| 学生 | 2024002 | 123456 | 李四（650分，物化地） |
-
-### 示例学生数据
-
-| 学号 | 姓名 | 总分 | 选科 | 省份 | 班级 | 兴趣课程 |
-|------|------|------|------|------|------|----------|
-| 2024001 | 张三 | 680 | 物化生 | 北京 | 高三1班 | 编程竞赛、数学竞赛、机器人 |
-| 2024002 | 李四 | 650 | 物化地 | 北京 | 高三1班 | 编程竞赛、英语演讲 |
-| 2024003 | 王五 | 620 | 史政地 | 北京 | 高三2班 | 写作、历史研究 |
-| 2024004 | 赵六 | 590 | 物化生 | 江苏 | 高三3班 | 编程竞赛、物理实验 |
-| 2024005 | 钱七 | 560 | 物化地 | 江苏 | 高三3班 | 数学竞赛、化学实验 |
-
----
-
-## 九、页面功能说明
-
-### 9.1 登录页
-
-- 支持管理员和考生两种主体登录
-- 登录后根据角色跳转至数据看板
-- Token 认证机制，未登录自动跳转登录页
-
-### 9.1.1 注册页
-
-- 支持考生账号自助注册
-- 考生注册需填写：用户名（即学号）、密码、姓名、性别、省份、选科组合、联系电话
-- 考生注册时自动创建student记录并关联sys_user
-- 密码确认校验、用户名唯一性校验
-
-### 9.2 数据看板
-
-- 顶部统计卡片：总考生数、已录取、未录取
-- 左侧柱状图：各大学录取人数分布
-- 右侧饼图：分数段分布（700+、650-699、600-649 等）
-
-### 9.3 学生管理（管理员）
-
-- 学生信息增删改查，支持按姓名/学号/班级/省份筛选
-- 兴趣课程管理：添加/删除兴趣课程标签
-- 班级管理：班级增删改查，显示每班学生数
-
-### 9.4 院校管理（管理员）
-
-- 三栏布局：大学列表 - 院系列表 - 专业列表
-- 大学支持搜索筛选，显示985/211/普通标签
-- 专业显示选科要求和招生计划数
-
-### 9.5 分数线管理（管理员）
-
-- Tab切换：省控线 / 大学投档线
-- 支持按省份、年份筛选
-- 增删改查操作
-
-### 9.6 志愿填报（学生）
-
-- 显示当前学生信息（总分、选科组合）
-- 志愿列表：最多10个志愿，每志愿1所大学+3个专业+调剂开关
-- 智能推荐：基于分数与历年数据生成冲/稳/保方案，一键添加
-- 选科校验：选择专业时实时检测选科是否匹配，不符则红色提示
-- 草稿/提交：保存草稿可多次修改，正式提交后锁定
-
-### 9.7 录取分配（管理员）
-
-- 一键执行平行志愿录取算法
-- 显示录取结果摘要
-- 录取日志表：每位学生的检索过程、录取/退档原因
-
-### 9.8 录取查询（所有角色）
-
-- 双向查询：按学校查已录取学生 / 按学生查录取结果
-- 支持按录取状态筛选
-- 显示调剂标记和分配的专业课程
-
----
-
-## 十、权限控制
-
-| 功能模块 | 管理员 | 考生 |
-|----------|--------|------|
-| 数据看板 | 可用 | 可用 |
-| 学生管理 | 可用 | 不可用 |
-| 班级管理 | 可用 | 不可用 |
-| 院校管理 | 可用 | 不可用 |
-| 分数线管理 | 可用 | 不可用 |
-| 志愿填报 | 可用 | 可用（仅本人） |
-| 录取分配 | 可用 | 不可用 |
-| 录取查询 | 可用 | 可用（仅本人） |
-
-后端已接入基础角色权限：
-
-- 管理员可执行基础数据维护、录取分配、录取日志查看
-- 考生可查看自己的学生信息并维护兴趣课程、志愿；成绩和基础资料只能由管理员维护
-- 现实使用主体收敛为后台管理员和考生，暂不引入第三类登录主体
-- 志愿提交已在后端校验院校数量、专业数量、院校重复、专业重复、专业归属、选科匹配和 priority 范围
-- 填报起止时间由 `gaokao.application-window` 配置；窗口外后端拒绝保存或提交，前端同步锁定编辑
-
----
-
-## 十一、已知限制与后续规划
-
-| 项目 | 当前状态 | 后续规划 |
-|------|----------|----------|
-| 数据库 | H2文件模式（本地持久化），已预留PostgreSQL profile | 引入Flyway/Liquibase，支持生产级部署 |
-| 认证 | 简易Token（内存存储） | 接入JWT + Redis，支持Token刷新 |
-| 批量导入 | 未实现前端页面 | 前端Excel上传组件 + EasyExcel解析 |
-| 数据导出 | 未实现 | 录取结果导出Excel/CSV |
-| 志愿时间 | 已支持YAML/环境变量配置和到期锁定 | 增加管理员可视化配置页面 |
-| 同分排序 | 已按总分、语文、数学、外语、学号排序 | 后续支持分省规则配置 |
-| 移动端适配 | 未优化 | 响应式布局适配手机端 |
-
----
-
-## 十二、模块完善评估
-
-当前系统已具备完整演示闭环，后续建议按“录取可信度 > 数据安全 > 数据流转 > 体验优化”的顺序完善。
-
-| 优先级 | 模块 | 当前状态 | 建议完善 |
-|------|------|----------|----------|
-| 已完成 P0 | 录取算法 | 物理/历史计划隔离、同分排序、调剂、退档、分省名额均已实现并有测试 | 后续支持分省同分细则 |
-| 已完成 P0 | 志愿填报 | 草稿、强校验、时间窗口、提交预检和锁定均已完成 | P1增加可视化时间配置 |
-| 已完成 P0 | 权限控制 | 管理员/考生鉴权及越权接口测试已完成，考生不能修改成绩 | P1升级密码和Token安全 |
-| P1 | 数据库 | H2文件库已持久化，schema已补关键约束和索引，已预留PostgreSQL profile | 引入Flyway/Liquibase，沉淀正式迁移脚本 |
-| P1 | 认证模块 | 简易Token内存存储，密码明文 | 密码使用BCrypt；Token改JWT并带过期时间；需要主动登出时再接Redis |
-| P1 | 导入导出 | 后端已有Excel相关依赖，前端页面未做 | 增加学生、院校、专业、招生计划Excel导入；录取结果CSV/Excel导出 |
-| P1 | 录取查询 | 支持学校/学生/班级等条件查询 | 增加未录取原因筛选、调剂统计、批量导出 |
-| P2 | 数据看板 | 有录取数量和分数段图表 | 增加物理类/历史类分组看板、各省计划使用率、退档原因分布 |
-| P2 | 院校专业管理 | 支持大学-院系-专业维护和分省计划 | 增加批量编辑、计划校验、专业选科模板、删除前影响提示 |
-| P2 | 前端体验 | Element Plus页面基本可用 | 优化移动端布局、表格分页、加载态、空状态、表单错误提示 |
-| P2 | 启动部署 | 已支持桌面快捷方式会话式启动，关闭独立前端窗口后可自动停止本次启动的前后端 | 后续可增加健康检查页面、前后端一键打包脚本、生产部署说明 |
-| P2 | 测试体系 | P0后端规则和权限已有自动化测试 | 增加数据库集成测试和前端关键流程E2E |
-
-### 推荐下一步
-
-1. 引入 Flyway/Liquibase，把当前 schema 演进固化成正式迁移脚本。
-2. 使用 BCrypt 存储密码，并将内存 Token 升级为带过期时间的 JWT。
-3. 完成业务数据导入和录取结果导出。
+下一阶段不继续修补旧模型，而是按 `handoff.md` 的阶段顺序完成：数据库迁移、领域模型重建、投档引擎、账号安全、导入导出、前端改造、Docker 公网体验和端到端验证。
