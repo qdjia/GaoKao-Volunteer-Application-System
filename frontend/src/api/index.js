@@ -44,6 +44,7 @@ export const saveUniversityScoreLine = (data) => request.post('/score-lines/univ
 export const deleteUniversityScoreLine = (id) => request.delete(`/score-lines/university/${id}`)
 
 export const getApplications = (studentId) => request.get(`/applications/student/${studentId}`)
+export const getApplicationWindow = () => request.get('/applications/window')
 export const submitApplication = (data) => request.post('/applications/submit', data)
 export const submitDraft = (studentId) => request.post(`/applications/student/${studentId}/submit-draft`)
 export const getRecommend = (studentId) => request.get(`/applications/recommend/${studentId}`)

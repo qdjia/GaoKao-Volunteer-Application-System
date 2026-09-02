@@ -55,7 +55,7 @@ D:\git_projects\demo_HUAWEI\
 - 分省招生计划
 - 兴趣课程→专业课程智能分配
 - 志愿草稿/正式提交
-- 用户注册（学生+教师两类账号）
+- 用户注册（考生账号）
 
 ---
 
@@ -101,12 +101,11 @@ D:\git_projects\demo_HUAWEI\
 
 ### 4.6 注册功能实现（本次新增）
 
-**需求**：学生和教师两类账号注册  
+**需求**：考生账号注册
 **实现**：
 - 后端：`RegisterRequest` DTO + `AuthService.register()` + `AuthController.register()`
 - 学生注册：自动创建student记录并关联sys_user.student_id
-- 教师注册：只创建sys_user记录
-- 前端：`Register.vue`注册页面（含角色选择、学生额外字段、表单校验）
+- 前端：`Register.vue`注册页面（考生字段、表单校验）
 - 路由：`/register`路由 + 登录页"立即注册"链接 + 路由守卫放行
 - 全局异常处理器：`GlobalExceptionHandler.java`，统一捕获RuntimeException返回友好错误信息
 
@@ -128,12 +127,13 @@ D:\git_projects\demo_HUAWEI\
 
 ### 4.8 录取算法合理性调整（本次新增）
 
-**需求**：录取时按物理类和历史类分开处理，化学/生物/政治/地理用于补足选科组合不足  
+**需求**：录取时按物理类和历史类分开处理，化学/生物/政治/地理可任意选择两门
 **实现**：
 - 新增 `SubjectMatcher`：统一处理选科标准化和匹配
 - 兼容 `物化生`、`史政地`、`物理、化学、生物` 等写法
-- 首选科目物理/历史作为硬约束，录取队列按物理类、历史类分开
-- 每个队列内部按总分降序排序；暂用学号和ID作为同分稳定排序
+- 首选科目物理/历史作为硬约束；专业计划增加 `subjectType`，录取队列和计划名额均按物理类、历史类分开
+- 选科必须是“物理/历史二选一 + 化学/生物/政治/地理任选二”，覆盖全部12种组合，不再自动推断缺失科目
+- 每个队列内部按总分、语文、数学、外语降序排列，最后按学号和ID稳定排序
 - 专业志愿按 priority 处理，避免数据库返回顺序影响录取结果
 - 调剂专业也必须满足学生选科和本省招生名额
 
@@ -157,8 +157,23 @@ D:\git_projects\demo_HUAWEI\
 - 管理员才能执行录取、查看录取日志、维护学生/班级/院校/分数线/专业课程
 - 学生只能访问自己的学生信息、兴趣课程、志愿、推荐和录取结果
 - 学生访问他人数据返回 403
-- 教师账号暂未绑定班级，录取明细暂不开放，避免泄露全量数据
+- 成绩和学生基础资料只能由管理员维护，考生不能通过接口修改自己的分数
+- 系统主体收敛为后台管理员和考生，不再暴露第三类登录/注册入口
 - 志愿提交新增后端校验：最多10个院校志愿、每校最多3个专业、院校不重复、专业不重复、priority范围合法、专业必须属于对应院校、status只能为 `DRAFT` 或 `SUBMITTED`
+- 正式提交会预检选科匹配；`application.yml` 配置填报起止时间，窗口外后端拒绝保存和提交，前端同步锁定控件
+
+### 4.11 系统主体收敛为后台管理员与考生（本次调整）
+
+**现实判断**：当前系统更接近“后台统一管理 + 考生自主填报/查询”的真实使用模式，不再强行引入第三类登录主体。班级表中的 `teacher` 字段仅作为班主任姓名展示，不作为登录账号或权限边界。
+
+**实现**：
+- 后端注册接口仅支持考生自助注册；非 `STUDENT` 角色注册会被拒绝
+- 后端登录接口仅允许 `ADMIN` 与 `STUDENT` 角色登录；历史文件库中若残留其他角色账号，也不能作为有效业务主体登录
+- 示例数据移除第三类测试账号
+- 前端登录页移除第三类测试账号提示
+- 前端注册页移除角色选择，只保留考生注册表单
+- 顶栏角色显示收敛为“管理员 / 考生”
+- README 和交接文档的后续规划移除第三类主体相关待办
 
 ---
 
@@ -177,10 +192,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUA
 - 当前 `Gaokao Start App` 指向 `scripts/start-app-session.ps1`，不是开机自启动
 - 已确认未安装登录/开机自启动任务；如后续误装，可执行 `scripts/uninstall-backend-startup.ps1`
 
-### 5.2 🟡 教师本班权限模型缺失
+### 5.2 🟢 P0 自动化测试已建立
 
-当前 `sys_user` 没有绑定教师对应的班级或教师档案，无法可靠判断教师“仅本班”范围。  
-后续建议新增 `teacher` 或 `teacher_class` 表，将教师账号与班级关联，再开放教师班级学生和班级录取明细查询。
+已新增35项后端自动化测试，覆盖12种选科组合、物理/历史计划隔离、同分排序、调剂、退档、分省名额、时间窗口、草稿提交旁路、非法志愿和越权访问。后续仍可在 P2 增加前端 E2E 与数据库集成测试。
 
 ---
 
@@ -188,11 +202,10 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUA
 
 | 优先级 | 功能 | 说明 |
 |--------|------|------|
-| P0 | 教师本班权限模型 | 新增教师-班级关联，开放教师视图 |
 | P1 | 批量导入前端页面 | 后端已有EasyExcel依赖，需前端Excel上传组件 |
 | 🟡 P1 | 数据导出 | 录取结果导出Excel/CSV |
-| 🟡 P1 | 志愿截止时间 | 后台配置填报起止时间，到期自动锁定 |
-| 🟢 P2 | 同分排序规则 | 需先补语文/数学/外语单科字段，再按规则排序 |
+| P1 | 志愿时间后台维护 | 当前由YAML/环境变量配置；后续增加管理页面和配置持久化 |
+| P2 | 分省同分规则 | 当前默认总分、语文、数学、外语；后续按省份配置细则 |
 | 🟢 P2 | JWT+Redis认证 | 替换当前内存Token方案 |
 | 🟢 P2 | 切换PostgreSQL | application.yml切换配置，data.sql需适配PG语法 |
 | 🟢 P2 | 移动端适配 | 响应式布局 |
@@ -243,7 +256,6 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUA
 | 管理员 | admin | admin123 |
 | 学生 | 2024001 | 123456 |
 | 学生 | 2024002 | 123456 |
-| 教师 | teacher1 | 123456 |
 
 也可通过注册页面创建新账号。
 
@@ -278,6 +290,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUA
 | `backend/src/main/java/com/gaokao/util/SubjectMatcher.java` | **新增**：统一选科标准化与匹配规则 |
 | `backend/src/main/java/com/gaokao/service/AdmissionService.java` | **修改**：物理类/历史类分开录取，调剂校验选科，专业志愿按priority处理 |
 | `backend/src/main/java/com/gaokao/service/ApplicationService.java` | **修改**：前端实时选科校验复用统一匹配规则 |
+| `backend/src/main/java/com/gaokao/service/ApplicationWindowService.java` | **新增**：统一计算填报窗口状态并阻止窗口外写入 |
+| `backend/src/test/java/com/gaokao/**` | **新增**：录取、选科、窗口、志愿校验和权限接口自动化测试 |
 | `backend/src/main/java/com/gaokao/util/AuthContext.java` | **新增**：统一当前用户解析和权限判断 |
 | `backend/src/main/java/com/gaokao/controller/*Controller.java` | **修改**：敏感查询和写操作接入后端角色权限 |
 | `backend/src/main/resources/db/schema.sql` | **修改**：补充关键外键、唯一约束和查询索引 |
@@ -288,35 +302,37 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUA
 
 | 优先级 | 模块 | 当前状态 | 建议完善 |
 |------|------|----------|----------|
-| P0 | 录取算法 | 已完成物理类/历史类分开录取和调剂选科校验 | 补语文/数学/外语字段，实现真实同分排序；增加算法单元测试 |
-| P0 | 志愿填报 | 已补后端强校验，有草稿/提交/锁定 | 增加填报时间窗口和提交预检 |
-| P0 | 权限控制 | 已完成管理员/学生后端强鉴权 | 补教师-班级关联模型，实现教师仅本班 |
+| 已完成 P0 | 录取算法 | 物理/历史队列和专业计划隔离；总分及三门单科同分排序；调剂、退档、分省名额均有测试 | 后续按省份配置具体同分细则 |
+| 已完成 P0 | 志愿填报 | 后端强校验、填报时间窗口、提交预检、提交锁定均已完成 | P1增加管理员可视化时间配置 |
+| 已完成 P0 | 权限控制 | 管理员/考生强鉴权，考生不能改成绩或访问他人数据，已有接口测试 | P1升级认证安全 |
 | P1 | 数据库 | H2文件库已持久化，已预留PostgreSQL profile，已补关键约束和索引 | 引入Flyway/Liquibase管理正式迁移 |
 | P1 | 认证 | 内存Token、明文密码 | 密码BCrypt；Token改JWT；需要会话吊销再接Redis |
 | P1 | 导入导出 | 依赖已存在，业务入口未完成 | 做学生/院校/专业/计划Excel导入，录取结果CSV/Excel导出 |
-| P1 | 录取查询 | 能查结果和日志 | 增加未录取原因、调剂统计、教师班级视角、导出入口 |
+| P1 | 录取查询 | 能查结果和日志 | 增加未录取原因、调剂统计、导出入口 |
 | P2 | 数据看板 | 基础统计和图表可用 | 增加物理/历史分组、各省计划使用率、退档原因分布 |
 | P2 | 院校专业管理 | 三栏维护可用 | 增加批量维护、删除影响提示、选科要求模板 |
 | P2 | 前端体验 | 基础页面可用 | 优化移动端、分页、加载态、空状态、错误提示 |
 | P2 | 启动部署 | 已支持桌面快捷方式会话式启动，关闭独立前端窗口后可自动停止本次启动的前后端 | 增加健康检查页面、一键打包脚本、生产部署说明 |
-| P3 | 测试体系 | 主要依赖编译和手工验证 | 补Service单元测试、接口测试、关键流程E2E测试 |
+| P2 | 测试体系 | P0后端规则和权限已有自动化测试 | 增加数据库集成测试和前端关键流程E2E |
 
 ### 推荐下一步实施顺序
 
-1. 补教师-班级关联模型，开放教师仅本班查询。
-2. 为录取算法补测试数据和单元测试，覆盖物理类/历史类、调剂、退档、分省名额、选科不符。
-3. 引入 Flyway/Liquibase，把当前 schema 演进固化成正式迁移。
+1. 引入 Flyway/Liquibase，把当前 schema 演进固化成正式迁移。
+2. 使用 BCrypt 存储密码，并将内存 Token 升级为带过期时间的 JWT。
+3. 完成学生、院校、专业与招生计划导入，以及录取结果导出。
 
 ---
 
 ## 十、最近一次验证记录
 
-验证时间：2026-09-01
+验证时间：2026-09-02
 
 | 验证项 | 命令/方式 | 结果 |
 |------|----------|------|
+| 后端自动化测试 | `mvn -q test` | 35项通过，0失败、0错误 |
 | 后端编译打包 | `D:\maven\apache-maven-3.9.16\bin\mvn.cmd -q -DskipTests package` | 通过 |
 | 前端生产构建 | `npm run build` | 通过；仅有 Vite 大 chunk 提示 |
+| 角色引用扫描 | 搜索第三类登录角色相关关键词 | 业务代码中已清理；仅保留班主任姓名示例数据 |
 | PowerShell脚本语法 | Parser 检查 `start-app-session.ps1`、`stop-frontend.ps1`、`create-desktop-shortcuts.ps1` | 通过 |
 | 桌面快捷方式刷新 | `scripts/setup-desktop-shortcuts.ps1` | 已创建/覆盖到桌面 |
 | 后端运行状态 | 执行验证后调用 `scripts/stop-backend.ps1` | 已停止测试进程 |

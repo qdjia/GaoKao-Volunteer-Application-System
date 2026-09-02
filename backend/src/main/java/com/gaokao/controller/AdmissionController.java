@@ -36,9 +36,7 @@ public class AdmissionController {
         if (user.isStudent()) {
             return Result.success(admissionService.queryResults(null, user.studentId(), status, null));
         }
-        if (!user.isAdmin()) {
-            throw new SecurityException("当前教师账号暂未绑定班级，无法查看录取明细");
-        }
+        AuthContext.requireAdmin(request);
         return Result.success(admissionService.queryResults(universityId, studentId, status, classId));
     }
 

@@ -40,7 +40,7 @@
         <div class="header-right">
           <span class="role-tag">
             <el-tag :type="store.isAdmin() ? 'danger' : store.isStudent() ? 'success' : 'warning'" size="small">
-              {{ store.isAdmin() ? '管理员' : store.isStudent() ? '学生' : '教师' }}
+              {{ store.isAdmin() ? '管理员' : '考生' }}
             </el-tag>
           </span>
           <span class="username">{{ store.username }}</span>

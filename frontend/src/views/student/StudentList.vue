@@ -26,6 +26,9 @@
         <el-table-column prop="name" label="姓名" width="100" />
         <el-table-column prop="gender" label="性别" width="70" />
         <el-table-column prop="totalScore" label="高考总分" width="100" sortable />
+        <el-table-column prop="chineseScore" label="语文" width="80" />
+        <el-table-column prop="mathScore" label="数学" width="80" />
+        <el-table-column prop="foreignLanguageScore" label="外语" width="80" />
         <el-table-column prop="provinceName" label="省份" width="100" />
         <el-table-column prop="className" label="班级" width="120" />
         <el-table-column prop="subjectCombo" label="选科组合" width="120" />
@@ -48,6 +51,17 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="姓名" prop="name"><el-input v-model="form.name" /></el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <el-form-item label="语文"><el-input-number v-model="form.chineseScore" :min="0" :max="150" /></el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="数学"><el-input-number v-model="form.mathScore" :min="0" :max="150" /></el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="外语"><el-input-number v-model="form.foreignLanguageScore" :min="0" :max="150" /></el-form-item>
           </el-col>
         </el-row>
         <el-row :gutter="20">
@@ -80,9 +94,7 @@
           <el-col :span="12">
             <el-form-item label="选科组合">
               <el-select v-model="form.subjectCombo" placeholder="选择科组">
-                <el-option label="物化生" value="物化生" /><el-option label="物化地" value="物化地" />
-                <el-option label="物政生" value="物政生" /><el-option label="史政地" value="史政地" />
-                <el-option label="史政生" value="史政生" /><el-option label="史地生" value="史地生" />
+                <el-option v-for="combo in subjectCombinations" :key="combo" :label="combo" :value="combo" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -131,9 +143,14 @@ const formRef = ref()
 const interestList = ref([])
 const newInterest = ref('')
 const currentStudentId = ref(null)
+const subjectCombinations = [
+  '物化生', '物化政', '物化地', '物生政', '物生地', '物政地',
+  '史化生', '史化政', '史化地', '史生政', '史生地', '史政地'
+]
 
 const query = reactive({ name: '', studentNo: '', classId: null })
-const form = reactive({ id: null, studentNo: '', name: '', gender: '男', totalScore: null, provinceId: null, classId: null, subjectCombo: '', phone: '' })
+const emptyForm = { id: null, studentNo: '', name: '', gender: '男', totalScore: null, chineseScore: null, mathScore: null, foreignLanguageScore: null, provinceId: null, classId: null, subjectCombo: '', phone: '' }
+const form = reactive({ ...emptyForm })
 const formRules = {
   studentNo: [{ required: true, message: '请输入学号', trigger: 'blur' }],
   name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
@@ -147,7 +164,7 @@ const loadData = async () => {
 
 const handleAdd = () => {
   isEdit.value = false
-  Object.assign(form, { id: null, studentNo: '', name: '', gender: '男', totalScore: null, provinceId: null, classId: null, subjectCombo: '', phone: '' })
+  Object.assign(form, emptyForm)
   dialogVisible.value = true
 }
 

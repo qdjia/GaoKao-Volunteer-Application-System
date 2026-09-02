@@ -12,43 +12,39 @@
         <el-form-item label="确认密码" prop="confirmPassword">
           <el-input v-model="form.confirmPassword" type="password" placeholder="请再次输入密码" show-password />
         </el-form-item>
-        <el-form-item label="角色" prop="role">
-          <el-radio-group v-model="form.role">
-            <el-radio value="STUDENT">学生</el-radio>
-            <el-radio value="TEACHER">教师</el-radio>
+        <el-form-item label="姓名" prop="name">
+          <el-input v-model="form.name" placeholder="请输入真实姓名" />
+        </el-form-item>
+        <el-form-item label="性别" prop="gender">
+          <el-radio-group v-model="form.gender">
+            <el-radio value="男">男</el-radio>
+            <el-radio value="女">女</el-radio>
           </el-radio-group>
         </el-form-item>
-        <template v-if="form.role === 'STUDENT'">
-          <el-form-item label="姓名" prop="name">
-            <el-input v-model="form.name" placeholder="请输入真实姓名" />
-          </el-form-item>
-          <el-form-item label="性别" prop="gender">
-            <el-radio-group v-model="form.gender">
-              <el-radio value="男">男</el-radio>
-              <el-radio value="女">女</el-radio>
-            </el-radio-group>
-          </el-form-item>
-          <el-form-item label="省份" prop="provinceId">
-            <el-select v-model="form.provinceId" placeholder="请选择省份" filterable style="width: 100%">
-              <el-option v-for="p in provinces" :key="p.id" :label="p.name" :value="p.id" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="选科组合" prop="subjectCombo">
-            <el-select v-model="form.subjectCombo" placeholder="请选择选科组合" style="width: 100%">
-              <el-option value="物化生" />
-              <el-option value="物化地" />
-              <el-option value="物政生" />
-              <el-option value="物政地" />
-              <el-option value="史政地" />
-              <el-option value="史政生" />
-              <el-option value="史化地" />
-              <el-option value="史化生" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="联系电话" prop="phone">
-            <el-input v-model="form.phone" placeholder="请输入手机号" />
-          </el-form-item>
-        </template>
+        <el-form-item label="省份" prop="provinceId">
+          <el-select v-model="form.provinceId" placeholder="请选择省份" filterable style="width: 100%">
+            <el-option v-for="p in provinces" :key="p.id" :label="p.name" :value="p.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="选科组合" prop="subjectCombo">
+          <el-select v-model="form.subjectCombo" placeholder="请选择选科组合" style="width: 100%">
+            <el-option value="物化生" />
+            <el-option value="物化政" />
+            <el-option value="物化地" />
+            <el-option value="物生政" />
+            <el-option value="物生地" />
+            <el-option value="物政地" />
+            <el-option value="史化政" />
+            <el-option value="史政地" />
+            <el-option value="史生政" />
+            <el-option value="史化地" />
+            <el-option value="史化生" />
+            <el-option value="史生地" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="联系电话" prop="phone">
+          <el-input v-model="form.phone" placeholder="请输入手机号" />
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" :loading="loading" @click="handleRegister" style="width: 100%">注 册</el-button>
         </el-form-item>
@@ -75,7 +71,6 @@ const form = reactive({
   username: '',
   password: '',
   confirmPassword: '',
-  role: 'STUDENT',
   name: '',
   gender: '男',
   provinceId: null,
@@ -101,7 +96,6 @@ const rules = {
     { required: true, message: '请确认密码', trigger: 'blur' },
     { validator: validateConfirm, trigger: 'blur' }
   ],
-  role: [{ required: true, message: '请选择角色', trigger: 'change' }],
   name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
   gender: [{ required: true, message: '请选择性别', trigger: 'change' }],
   provinceId: [{ required: true, message: '请选择省份', trigger: 'change' }],
@@ -122,14 +116,12 @@ const handleRegister = async () => {
     const data = {
       username: form.username,
       password: form.password,
-      role: form.role
-    }
-    if (form.role === 'STUDENT') {
-      data.name = form.name
-      data.gender = form.gender
-      data.provinceId = form.provinceId
-      data.subjectCombo = form.subjectCombo
-      data.phone = form.phone
+      role: 'STUDENT',
+      name: form.name,
+      gender: form.gender,
+      provinceId: form.provinceId,
+      subjectCombo: form.subjectCombo,
+      phone: form.phone
     }
     await register(data)
     ElMessage.success('注册成功，请登录')

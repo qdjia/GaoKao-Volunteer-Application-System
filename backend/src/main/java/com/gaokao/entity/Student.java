@@ -12,6 +12,9 @@ public class Student {
     private String gender;
     private String idCard;
     private BigDecimal totalScore;
+    private BigDecimal chineseScore;
+    private BigDecimal mathScore;
+    private BigDecimal foreignLanguageScore;
     private Long provinceId;
     private Long classId;
     private String subjectCombo;

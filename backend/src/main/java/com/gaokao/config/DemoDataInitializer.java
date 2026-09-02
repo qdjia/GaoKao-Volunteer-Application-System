@@ -33,6 +33,7 @@ public class DemoDataInitializer implements CommandLineRunner {
 
         Integer provinceCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM province", Integer.class);
         if (provinceCount != null && provinceCount > 0) {
+            repairMajorSubjectTypes();
             repairStudentUserLinks();
             return;
         }
@@ -41,7 +42,20 @@ public class DemoDataInitializer implements CommandLineRunner {
         populator.setSqlScriptEncoding("UTF-8");
         populator.addScript(new ClassPathResource("db/data.sql"));
         populator.execute(dataSource);
+        repairMajorSubjectTypes();
         repairStudentUserLinks();
+    }
+
+    private void repairMajorSubjectTypes() {
+        jdbcTemplate.update("""
+                UPDATE major
+                SET subject_type = CASE
+                    WHEN subject_req LIKE '%历史%'
+                         OR (subject_req NOT LIKE '%物理%' AND subject_req LIKE '%史%') THEN '历史'
+                    ELSE '物理'
+                END
+                WHERE subject_type IS NULL
+                """);
     }
 
     private void repairStudentUserLinks() {

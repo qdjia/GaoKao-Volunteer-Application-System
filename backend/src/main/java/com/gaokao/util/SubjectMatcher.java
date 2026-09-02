@@ -1,6 +1,5 @@
 package com.gaokao.util;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,6 +27,9 @@ public final class SubjectMatcher {
 
     public static boolean isSubjectMatch(String subjectCombo, String requirement) {
         Set<String> studentSubjects = normalize(subjectCombo);
+        if (!isValidCombination(subjectCombo)) {
+            return false;
+        }
         Set<String> requiredSubjects = normalizeRequirement(requirement);
         if (requiredSubjects.isEmpty()) {
             return true;
@@ -41,6 +43,14 @@ public final class SubjectMatcher {
         }
 
         return studentSubjects.containsAll(requiredSubjects);
+    }
+
+    public static boolean isMajorMatch(String subjectCombo, String subjectType, String requirement) {
+        String studentPrimary = primarySubject(subjectCombo);
+        if (subjectType != null && !subjectType.isBlank() && !subjectType.equals(studentPrimary)) {
+            return false;
+        }
+        return isSubjectMatch(subjectCombo, requirement);
     }
 
     public static Set<String> normalize(String text) {
@@ -57,8 +67,15 @@ public final class SubjectMatcher {
         collectSubject(text, subjects, compact, "政治", "政");
         collectSubject(text, subjects, compact, "地理", "地");
 
-        fillOptionalSubjects(subjects);
         return subjects;
+    }
+
+    public static boolean isValidCombination(String subjectCombo) {
+        Set<String> subjects = normalize(subjectCombo);
+        boolean hasPhysics = subjects.contains(PHYSICS);
+        boolean hasHistory = subjects.contains(HISTORY);
+        long optionalCount = OPTIONAL_SUBJECTS.stream().filter(subjects::contains).count();
+        return hasPhysics != hasHistory && optionalCount == 2 && subjects.size() == 3;
     }
 
     private static Set<String> normalizeRequirement(String requirement) {
@@ -88,21 +105,4 @@ public final class SubjectMatcher {
                 || text.contains("生物") || text.contains("政治") || text.contains("地理");
     }
 
-    private static void fillOptionalSubjects(Set<String> subjects) {
-        String primary = subjects.contains(PHYSICS) ? PHYSICS : subjects.contains(HISTORY) ? HISTORY : null;
-        if (primary == null || subjects.size() >= 3) {
-            return;
-        }
-
-        List<String> additions = new ArrayList<>();
-        for (String subject : OPTIONAL_SUBJECTS) {
-            if (!subjects.contains(subject)) {
-                additions.add(subject);
-            }
-            if (subjects.size() + additions.size() >= 3) {
-                break;
-            }
-        }
-        subjects.addAll(additions);
-    }
 }

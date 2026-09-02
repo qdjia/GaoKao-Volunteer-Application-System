@@ -12,18 +12,17 @@ INSERT INTO class_info (id, name, grade, teacher, province_id) VALUES
 (2, '高三2班', '2024', '李老师', 1),
 (3, '高三3班', '2024', '王老师', 10);
 
-INSERT INTO student (id, student_no, name, gender, total_score, province_id, class_id, subject_combo, phone) VALUES
-(1, '2024001', '张三', '男', 680, 1, 1, '物化生', '13800000001'),
-(2, '2024002', '李四', '女', 650, 1, 1, '物化地', '13800000002'),
-(3, '2024003', '王五', '男', 620, 1, 2, '史政地', '13800000003'),
-(4, '2024004', '赵六', '女', 590, 10, 3, '物化生', '13800000004'),
-(5, '2024005', '钱七', '男', 560, 10, 3, '物化地', '13800000005');
+INSERT INTO student (id, student_no, name, gender, total_score, chinese_score, math_score, foreign_language_score, province_id, class_id, subject_combo, phone) VALUES
+(1, '2024001', '张三', '男', 680, 128, 142, 136, 1, 1, '物化生', '13800000001'),
+(2, '2024002', '李四', '女', 650, 125, 135, 130, 1, 1, '物化地', '13800000002'),
+(3, '2024003', '王五', '男', 620, 132, 118, 126, 1, 2, '史政地', '13800000003'),
+(4, '2024004', '赵六', '女', 590, 120, 124, 121, 10, 3, '物化生', '13800000004'),
+(5, '2024005', '钱七', '男', 560, 116, 119, 115, 10, 3, '物化地', '13800000005');
 
 INSERT INTO sys_user (id, username, password, role, student_id) VALUES
 (1, 'admin', 'admin123', 'ADMIN', NULL),
 (2, '2024001', '123456', 'STUDENT', 1),
-(3, '2024002', '123456', 'STUDENT', 2),
-(4, 'teacher1', '123456', 'TEACHER', NULL);
+(3, '2024002', '123456', 'STUDENT', 2);
 
 INSERT INTO university (id, name, type, province_id, batch) VALUES
 (1, '清华大学', '985', 1, '本科一批'),

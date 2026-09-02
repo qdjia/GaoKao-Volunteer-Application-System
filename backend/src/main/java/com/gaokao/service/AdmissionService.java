@@ -46,7 +46,8 @@ public class AdmissionService {
         int unadmitted = 0;
 
         for (Student student : students) {
-            List<Application> apps = applicationMapper.findByStudentIdAndStatus(student.getId(), "SUBMITTED");
+            List<Application> apps = new ArrayList<>(
+                    applicationMapper.findByStudentIdAndStatus(student.getId(), "SUBMITTED"));
             if (apps.isEmpty()) {
                 saveResult(student.getId(), null, null, "NO_APPLICATION", null, false, "未填报志愿");
                 unadmitted++;
@@ -58,7 +59,7 @@ public class AdmissionService {
 
             for (Application app : apps) {
                 Long universityId = app.getUniversityId();
-                List<ApplicationMajor> appMajors = applicationMajorMapper.findByApplicationId(app.getId());
+                List<ApplicationMajor> appMajors = new ArrayList<>(applicationMajorMapper.findByApplicationId(app.getId()));
                 appMajors.sort(Comparator.comparingInt(ApplicationMajor::getPriority));
 
                 for (ApplicationMajor am : appMajors) {
@@ -66,7 +67,7 @@ public class AdmissionService {
                     Major major = majorMapper.findById(majorId);
                     if (major == null) continue;
 
-                    if (!SubjectMatcher.isSubjectMatch(student.getSubjectCombo(), major.getSubjectReq())) {
+                    if (!SubjectMatcher.isMajorMatch(student.getSubjectCombo(), major.getSubjectType(), major.getSubjectReq())) {
                         admissionLogMapper.insert(createLog(student.getId(), universityId, majorId,
                                 "SKIP", "选科不符：专业要求" + major.getSubjectReq() + "，学生选科" + student.getSubjectCombo()));
                         continue;
@@ -130,6 +131,9 @@ public class AdmissionService {
         Comparator<Student> byScoreDesc = Comparator
                 .comparing(Student::getTotalScore, Comparator.nullsLast(Comparator.reverseOrder()));
         Comparator<Student> stableTieBreaker = byScoreDesc
+                .thenComparing(Student::getChineseScore, Comparator.nullsLast(Comparator.reverseOrder()))
+                .thenComparing(Student::getMathScore, Comparator.nullsLast(Comparator.reverseOrder()))
+                .thenComparing(Student::getForeignLanguageScore, Comparator.nullsLast(Comparator.reverseOrder()))
                 .thenComparing(Student::getStudentNo, Comparator.nullsLast(String::compareTo))
                 .thenComparing(Student::getId, Comparator.nullsLast(Long::compareTo));
 
@@ -166,7 +170,7 @@ public class AdmissionService {
 
         for (Major major : majors) {
             if (excludeIds.contains(major.getId())) continue;
-            if (!SubjectMatcher.isSubjectMatch(subjectCombo, major.getSubjectReq())) continue;
+            if (!SubjectMatcher.isMajorMatch(subjectCombo, major.getSubjectType(), major.getSubjectReq())) continue;
             int quota = getQuota(major.getId(), provinceId);
             int current = majorAdmittedCount
                     .computeIfAbsent(major.getId(), k -> new HashMap<>())

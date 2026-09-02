@@ -32,13 +32,14 @@ public interface StudentMapper {
             "LEFT JOIN class_info c ON s.class_id = c.id WHERE s.student_no = #{studentNo}")
     Student findByStudentNo(@Param("studentNo") String studentNo);
 
-    @Insert("INSERT INTO student(student_no, name, gender, id_card, total_score, province_id, class_id, subject_combo, phone) " +
-            "VALUES(#{studentNo}, #{name}, #{gender}, #{idCard}, #{totalScore}, #{provinceId}, #{classId}, #{subjectCombo}, #{phone})")
+    @Insert("INSERT INTO student(student_no, name, gender, id_card, total_score, chinese_score, math_score, foreign_language_score, province_id, class_id, subject_combo, phone) " +
+            "VALUES(#{studentNo}, #{name}, #{gender}, #{idCard}, #{totalScore}, #{chineseScore}, #{mathScore}, #{foreignLanguageScore}, #{provinceId}, #{classId}, #{subjectCombo}, #{phone})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(Student student);
 
     @Update("UPDATE student SET student_no=#{studentNo}, name=#{name}, gender=#{gender}, id_card=#{idCard}, " +
-            "total_score=#{totalScore}, province_id=#{provinceId}, class_id=#{classId}, subject_combo=#{subjectCombo}, " +
+            "total_score=#{totalScore}, chinese_score=#{chineseScore}, math_score=#{mathScore}, foreign_language_score=#{foreignLanguageScore}, " +
+            "province_id=#{provinceId}, class_id=#{classId}, subject_combo=#{subjectCombo}, " +
             "phone=#{phone}, status=#{status} WHERE id=#{id}")
     int update(Student student);
 

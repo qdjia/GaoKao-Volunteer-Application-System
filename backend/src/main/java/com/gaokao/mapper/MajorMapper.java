@@ -27,11 +27,11 @@ public interface MajorMapper {
             "LEFT JOIN university u ON d.university_id = u.id WHERE m.id = #{id}")
     Major findById(@Param("id") Long id);
 
-    @Insert("INSERT INTO major(name, department_id, subject_req, total_quota) VALUES(#{name}, #{departmentId}, #{subjectReq}, #{totalQuota})")
+    @Insert("INSERT INTO major(name, department_id, subject_req, subject_type, total_quota) VALUES(#{name}, #{departmentId}, #{subjectReq}, #{subjectType}, #{totalQuota})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(Major major);
 
-    @Update("UPDATE major SET name=#{name}, department_id=#{departmentId}, subject_req=#{subjectReq}, total_quota=#{totalQuota} WHERE id=#{id}")
+    @Update("UPDATE major SET name=#{name}, department_id=#{departmentId}, subject_req=#{subjectReq}, subject_type=#{subjectType}, total_quota=#{totalQuota} WHERE id=#{id}")
     int update(Major major);
 
     @Delete("DELETE FROM major WHERE id = #{id}")

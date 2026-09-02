@@ -29,6 +29,8 @@ public class ApplicationService {
     private UniversityScoreLineMapper universityScoreLineMapper;
     @Autowired
     private MajorMapper majorMapper;
+    @Autowired
+    private ApplicationWindowService applicationWindowService;
 
     public List<Application> findByStudentId(Long studentId) {
         List<Application> apps = applicationMapper.findByStudentId(studentId);
@@ -40,13 +42,18 @@ public class ApplicationService {
 
     @Transactional
     public void submitApplication(ApplicationSubmitRequest request) {
-        validateApplicationRequest(request);
+        applicationWindowService.requireOpen();
 
+        if (request == null || request.getStudentId() == null) {
+            throw new RuntimeException("学生ID不能为空");
+        }
         Long studentId = request.getStudentId();
         Student student = studentMapper.findById(studentId);
         if (student == null) {
             throw new RuntimeException("学生不存在");
         }
+
+        validateApplicationRequest(request, student);
 
         List<Application> existing = applicationMapper.findByStudentIdAndStatus(studentId, "SUBMITTED");
         if (!existing.isEmpty()) {
@@ -76,10 +83,7 @@ public class ApplicationService {
         }
     }
 
-    private void validateApplicationRequest(ApplicationSubmitRequest request) {
-        if (request == null || request.getStudentId() == null) {
-            throw new RuntimeException("学生ID不能为空");
-        }
+    private void validateApplicationRequest(ApplicationSubmitRequest request, Student student) {
         if (request.getApplications() == null || request.getApplications().isEmpty()) {
             throw new RuntimeException("志愿列表不能为空");
         }
@@ -135,16 +139,43 @@ public class ApplicationService {
                 if (!item.getUniversityId().equals(major.getUniversityId())) {
                     throw new RuntimeException("专业必须属于对应院校");
                 }
+                if ("SUBMITTED".equals(request.getStatus())
+                        && !SubjectMatcher.isMajorMatch(student.getSubjectCombo(), major.getSubjectType(), major.getSubjectReq())) {
+                    throw new RuntimeException("专业“" + major.getName() + "”的选科要求不匹配");
+                }
             }
         }
     }
 
     @Transactional
     public void submitDraft(Long studentId) {
+        applicationWindowService.requireOpen();
         List<Application> drafts = applicationMapper.findByStudentIdAndStatus(studentId, "DRAFT");
         if (drafts.isEmpty()) {
             throw new RuntimeException("没有可提交的草稿志愿");
         }
+        Student student = studentMapper.findById(studentId);
+        if (student == null) {
+            throw new RuntimeException("学生不存在");
+        }
+
+        ApplicationSubmitRequest request = new ApplicationSubmitRequest();
+        request.setStudentId(studentId);
+        request.setStatus("SUBMITTED");
+        request.setApplications(drafts.stream().map(app -> {
+            ApplicationSubmitRequest.ApplicationItem item = new ApplicationSubmitRequest.ApplicationItem();
+            item.setUniversityId(app.getUniversityId());
+            item.setPriority(app.getPriority());
+            item.setAcceptAdjust(app.getAcceptAdjust());
+            item.setMajors(applicationMajorMapper.findByApplicationId(app.getId()).stream().map(major -> {
+                ApplicationSubmitRequest.MajorItem majorItem = new ApplicationSubmitRequest.MajorItem();
+                majorItem.setMajorId(major.getMajorId());
+                majorItem.setPriority(major.getPriority());
+                return majorItem;
+            }).collect(Collectors.toList()));
+            return item;
+        }).collect(Collectors.toList()));
+        validateApplicationRequest(request, student);
         applicationMapper.updateStatusByStudentId(studentId, "SUBMITTED");
     }
 
@@ -213,6 +244,6 @@ public class ApplicationService {
         Student student = studentMapper.findById(studentId);
         Major major = majorMapper.findById(majorId);
         if (student == null || major == null) return false;
-        return SubjectMatcher.isSubjectMatch(student.getSubjectCombo(), major.getSubjectReq());
+        return SubjectMatcher.isMajorMatch(student.getSubjectCombo(), major.getSubjectType(), major.getSubjectReq());
     }
 }

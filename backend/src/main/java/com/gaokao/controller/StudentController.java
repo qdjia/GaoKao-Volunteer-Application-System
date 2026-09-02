@@ -36,11 +36,7 @@ public class StudentController {
 
     @PostMapping
     public Result<Void> save(@RequestBody Student student, HttpServletRequest request) {
-        if (student.getId() == null) {
-            AuthContext.requireAdmin(request);
-        } else {
-            AuthContext.requireAdminOrSelf(request, student.getId());
-        }
+        AuthContext.requireAdmin(request);
         studentService.save(student);
         return Result.success();
     }

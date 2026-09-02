@@ -2,8 +2,10 @@ package com.gaokao.controller;
 
 import com.gaokao.dto.ApplicationSubmitRequest;
 import com.gaokao.dto.RecommendResult;
+import com.gaokao.dto.ApplicationWindowStatus;
 import com.gaokao.entity.Application;
 import com.gaokao.service.ApplicationService;
+import com.gaokao.service.ApplicationWindowService;
 import com.gaokao.util.AuthContext;
 import com.gaokao.util.Result;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,6 +20,13 @@ public class ApplicationController {
 
     @Autowired
     private ApplicationService applicationService;
+    @Autowired
+    private ApplicationWindowService applicationWindowService;
+
+    @GetMapping("/window")
+    public Result<ApplicationWindowStatus> window() {
+        return Result.success(applicationWindowService.getStatus());
+    }
 
     @GetMapping("/student/{studentId}")
     public Result<List<Application>> findByStudent(@PathVariable Long studentId, HttpServletRequest httpRequest) {

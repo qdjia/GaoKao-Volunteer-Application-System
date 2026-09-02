@@ -4,6 +4,7 @@ import com.gaokao.entity.Student;
 import com.gaokao.entity.InterestCourse;
 import com.gaokao.mapper.StudentMapper;
 import com.gaokao.mapper.InterestCourseMapper;
+import com.gaokao.util.SubjectMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +29,9 @@ public class StudentService {
 
     @Transactional
     public void save(Student student) {
+        if (!SubjectMatcher.isValidCombination(student.getSubjectCombo())) {
+            throw new RuntimeException("选科组合必须为物理或历史加化学、生物、政治、地理中的任意两门");
+        }
         if (student.getId() == null) {
             studentMapper.insert(student);
         } else {

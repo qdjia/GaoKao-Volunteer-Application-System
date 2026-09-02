@@ -75,6 +75,9 @@ public class UniversityService {
 
     @Transactional
     public void saveMajor(Major major) {
+        if (!"物理".equals(major.getSubjectType()) && !"历史".equals(major.getSubjectType())) {
+            throw new RuntimeException("专业招生科类必须为物理或历史");
+        }
         if (major.getId() == null) {
             majorMapper.insert(major);
         } else {

@@ -47,7 +47,7 @@
           <div v-for="m in majors" :key="m.id" class="major-item" @click="handleEditMajor(m)">
             <div><strong>{{ m.name }}</strong></div>
             <div style="font-size:12px;color:#909399">
-              选科要求：{{ m.subjectReq || '无' }} | 招生计划：{{ m.totalQuota }}
+              招生科类：{{ m.subjectType || '未设置' }} | 选科要求：{{ m.subjectReq || '无' }} | 招生计划：{{ m.totalQuota }}
             </div>
           </div>
           <el-empty v-if="!selectedDept" description="请先选择院系" :image-size="60" />
@@ -83,6 +83,9 @@
     <el-dialog v-model="majorDialogVisible" :title="isEdit ? '编辑专业' : '新增专业'" width="500px">
       <el-form :model="majorForm" label-width="100px">
         <el-form-item label="专业名称"><el-input v-model="majorForm.name" /></el-form-item>
+        <el-form-item label="招生科类">
+          <el-segmented v-model="majorForm.subjectType" :options="['物理', '历史']" />
+        </el-form-item>
         <el-form-item label="选科要求"><el-input v-model="majorForm.subjectReq" placeholder="如：物理 或 物化生" /></el-form-item>
         <el-form-item label="招生计划数"><el-input-number v-model="majorForm.totalQuota" :min="0" /></el-form-item>
       </el-form>
@@ -111,7 +114,7 @@ const majorDialogVisible = ref(false)
 
 const univForm = reactive({ id: null, name: '', type: '985', provinceId: null, batch: '本科一批' })
 const deptForm = reactive({ id: null, name: '', universityId: null })
-const majorForm = reactive({ id: null, name: '', departmentId: null, subjectReq: '', totalQuota: 0 })
+const majorForm = reactive({ id: null, name: '', departmentId: null, subjectType: '物理', subjectReq: '', totalQuota: 0 })
 
 const filteredUniversities = computed(() => {
   if (!univQuery.value) return universities.value
@@ -140,7 +143,7 @@ const saveUniv = async () => { await saveUniversity(univForm); ElMessage.success
 const handleAddDept = () => { isEdit.value = false; Object.assign(deptForm, { id: null, name: '', universityId: selectedUniv.value.id }); deptDialogVisible.value = true }
 const saveDept = async () => { await saveDepartment(deptForm); ElMessage.success('保存成功'); deptDialogVisible.value = false; selectUniv(selectedUniv.value) }
 
-const handleAddMajor = () => { isEdit.value = false; Object.assign(majorForm, { id: null, name: '', departmentId: selectedDept.value.id, subjectReq: '', totalQuota: 0 }); majorDialogVisible.value = true }
+const handleAddMajor = () => { isEdit.value = false; Object.assign(majorForm, { id: null, name: '', departmentId: selectedDept.value.id, subjectType: '物理', subjectReq: '', totalQuota: 0 }); majorDialogVisible.value = true }
 const handleEditMajor = (m) => { isEdit.value = true; Object.assign(majorForm, m); majorDialogVisible.value = true }
 const saveMajorItem = async () => { await saveMajor(majorForm); ElMessage.success('保存成功'); majorDialogVisible.value = false; selectDept(selectedDept.value) }
 

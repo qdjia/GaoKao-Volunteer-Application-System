@@ -27,6 +27,9 @@ CREATE TABLE IF NOT EXISTS student (
     gender        VARCHAR(10),
     id_card       VARCHAR(20),
     total_score   DECIMAL(6,2),
+    chinese_score DECIMAL(5,2),
+    math_score    DECIMAL(5,2),
+    foreign_language_score DECIMAL(5,2),
     province_id   BIGINT,
     class_id      BIGINT,
     subject_combo VARCHAR(20),
@@ -53,6 +56,7 @@ CREATE TABLE IF NOT EXISTS major (
     name           VARCHAR(100) NOT NULL,
     department_id  BIGINT       NOT NULL,
     subject_req    VARCHAR(100),
+    subject_type   VARCHAR(10),
     total_quota    INT          DEFAULT 0
 );
 
@@ -91,6 +95,15 @@ CREATE TABLE IF NOT EXISTS interest_course (
     name       VARCHAR(100) NOT NULL,
     UNIQUE(student_id, name)
 );
+
+ALTER TABLE student ADD COLUMN IF NOT EXISTS chinese_score DECIMAL(5,2);
+ALTER TABLE student ADD COLUMN IF NOT EXISTS math_score DECIMAL(5,2);
+ALTER TABLE student ADD COLUMN IF NOT EXISTS foreign_language_score DECIMAL(5,2);
+ALTER TABLE major ADD COLUMN IF NOT EXISTS subject_type VARCHAR(10);
+UPDATE major SET subject_type = CASE
+    WHEN subject_req LIKE '%历史%' OR (subject_req NOT LIKE '%物理%' AND subject_req LIKE '%史%') THEN '历史'
+    ELSE '物理'
+END WHERE subject_type IS NULL;
 
 CREATE TABLE IF NOT EXISTS major_course (
     id        BIGINT AUTO_INCREMENT(100) PRIMARY KEY,

@@ -11,5 +11,6 @@ public class Major {
     private Long universityId;
     private String universityName;
     private String subjectReq;
+    private String subjectType;
     private Integer totalQuota;
 }

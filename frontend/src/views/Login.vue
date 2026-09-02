@@ -20,7 +20,6 @@
       <div class="login-tips">
         <p>管理员：admin / admin123</p>
         <p>学生：2024001 / 123456</p>
-        <p>教师：teacher1 / 123456</p>
       </div>
     </div>
   </div>
