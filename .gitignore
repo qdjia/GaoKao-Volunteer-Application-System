@@ -6,3 +6,6 @@ logs/
 frontend/dist/
 backend/data/
 data/
+.env
+.env.*
+!.env.example

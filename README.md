@@ -2,7 +2,7 @@
 
 本项目正在从通用的高考志愿演示程序，升级为面向黑龙江省 2026 年普通本科批的省级投档模拟系统。系统只保留两个业务主体：后台管理员和考生。
 
-> 当前仓库仍处于旧版原型向目标架构迁移前的状态。本 README 同时记录“当前可运行能力”和“已确认但尚未实现的目标”，不能把目标能力视为已经完成。详细交接见 `handoff.md`。
+> 当前仓库处于旧版原型向目标架构迁移阶段。PostgreSQL 迁移骨架已经完成，业务领域模型仍待重建。本 README 同时记录“当前可运行能力”和“已确认但尚未实现的目标”，详细交接见 `handoff.md`。
 
 ## 一、产品边界
 
@@ -29,21 +29,22 @@
 - Vue 3 + Element Plus 管理端和考生端原型。
 - Spring Boot 3.3.6 + MyBatis 后端。
 - 管理员与考生基础权限隔离。
-- H2 文件数据库本地持久化，并预留 PostgreSQL profile。
+- PostgreSQL 16 唯一数据库，使用 Flyway 管理结构迁移。
+- Docker Compose PostgreSQL 开发环境，数据持久化到根目录 `data/postgres/`。
+- Testcontainers PostgreSQL 集成测试，覆盖空库迁移、演示数据初始化和配额 upsert。
 - 物理类与历史类分开处理，支持 12 种合法选科组合校验。
 - 志愿草稿、提交、填报时间窗口和基础投档流程。
 - 本地 PowerShell 启停脚本与桌面快捷方式。
-- 35 项后端自动化测试曾于 2026-09-02 验证通过。
+- 38 项后端自动化测试和前端生产构建已于 2026-09-04 验证通过。
 
 ### 尚未实现
 
 - 黑龙江省 2026 年完整投档模型：45 个院校专业组、6 个专业志愿和精确同分规则。
 - 院校专业组、投档比例、不可变投档快照和结果版本。
-- PostgreSQL 唯一数据库、Flyway 迁移和 Testcontainers PostgreSQL 测试。
 - BCrypt、JWT、会话吊销、单设备登录和登录限流。
 - 管理员 Excel 批量导入、错误报告和结果导出。
 - 体验模式、正式模式、体验数据重置和备份策略。
-- Docker Compose、Cloudflare Quick Tunnel 和新的桌面启停流程。
+- 应用容器、Cloudflare Quick Tunnel 和新的桌面启停流程。
 - 仅本机开放后台管理、仅公网开放考生端的访问隔离。
 
 ## 三、当前技术栈
@@ -52,15 +53,15 @@
 |---|---|
 | 前端 | Vue 3、Vite、Pinia、Vue Router、Element Plus、Axios、ECharts |
 | 后端 | Java 17+、Spring Boot 3.3.6、MyBatis、Bean Validation |
-| 当前数据库 | H2 文件数据库 |
-| 目标数据库 | PostgreSQL |
+| 数据库 | PostgreSQL 16、Flyway |
+| 数据库测试 | Testcontainers PostgreSQL |
 | 数据处理 | Apache POI、EasyExcel |
 | 当前启动 | PowerShell 脚本，本地后端与 Vite 开发服务器 |
 | 目标部署 | Docker Desktop、WSL2 Ubuntu、Docker Compose、Cloudflare Quick Tunnel |
 
 ## 四、当前本地启动
 
-当前代码尚未完成 Docker 化，仍使用现有脚本启动。
+PostgreSQL 已使用 Docker Compose 管理；后端和前端仍使用本地开发命令或现有脚本启动。应用完整容器化将在后续阶段完成。
 
 ### 环境要求
 
@@ -68,6 +69,18 @@
 - Maven 3.8 或更高版本
 - Node.js 18 或更高版本
 - npm 9 或更高版本
+- Docker Desktop（后端启动和后端测试需要）
+
+### 启动 PostgreSQL
+
+首次启动前可将 `.env.example` 复制为 `.env` 并修改本地密码；不创建 `.env` 时使用 Compose 中的开发默认值。
+
+```powershell
+docker compose up -d postgres
+docker compose ps
+```
+
+数据库只绑定本机 `127.0.0.1:15432`，不会直接暴露到公网。首次连接空库时，后端会由 Flyway 自动执行 `backend/src/main/resources/db/migration/` 下的迁移。
 
 ### 桌面快捷方式
 
@@ -91,13 +104,15 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\git_projects\demo_HUA
 
 - 前端：`http://localhost:5173`
 - 后端：`http://localhost:8080`
-- H2 控制台：`http://localhost:8080/h2-console`
-- H2 数据：`backend/data/`
+- PostgreSQL：`127.0.0.1:15432`
+- PostgreSQL 数据：`data/postgres/`
 - 后端日志：`logs/backend.log`
 
 ## 五、当前构建与测试
 
 ```powershell
+# 启动测试所需的 Docker Desktop；Testcontainers 会自行创建隔离数据库
+
 # 后端测试
 cd backend
 D:\maven\apache-maven-3.9.16\bin\mvn.cmd test
@@ -109,6 +124,8 @@ D:\maven\apache-maven-3.9.16\bin\mvn.cmd -DskipTests package
 cd ..\frontend
 npm run build
 ```
+
+2026-09-04 验证结果：后端 38 项测试全部通过，前端构建通过；空库首次迁移成功，同一数据库二次启动识别为版本 `1` 且不重复迁移。
 
 ## 六、目标投档规则
 
@@ -153,8 +170,8 @@ Excel 导入采用整批事务：任何一行失败则整批回滚并生成逐�
 
 ## 八、目标数据与审计
 
-- 开发、体验和正式环境统一使用 PostgreSQL，移除 H2。
-- 使用 Flyway 管理数据库迁移。
+- 开发、体验和正式环境统一使用 PostgreSQL，H2 已移除。
+- 使用 Flyway 管理数据库迁移；当前基线版本为 `V1__baseline_schema.sql`。
 - 每次志愿提交保存不可覆盖的版本记录。
 - 截止时间以最后一次成功提交的版本为准，截止前仍可修改并重新提交。
 - 每次投档生成不可变快照，包含考生、成绩、志愿、计划、控制线和投档比例。
@@ -201,4 +218,4 @@ demo_HUAWEI/
 
 ## 十一、下一阶段
 
-下一阶段不继续修补旧模型，而是按 `handoff.md` 的阶段顺序完成：数据库迁移、领域模型重建、投档引擎、账号安全、导入导出、前端改造、Docker 公网体验和端到端验证。
+数据库迁移骨架已经完成。下一阶段按 `handoff.md` 的 P0-2 重建领域模型，随后完成投档引擎、账号安全、导入导出、前端改造、应用 Docker 化、公网体验和端到端验证。

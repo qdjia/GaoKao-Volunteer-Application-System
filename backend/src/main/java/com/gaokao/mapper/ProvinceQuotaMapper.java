@@ -21,7 +21,9 @@ public interface ProvinceQuotaMapper {
             "WHERE pq.major_id = #{majorId} AND pq.province_id = #{provinceId}")
     ProvinceQuota findByMajorAndProvince(@Param("majorId") Long majorId, @Param("provinceId") Long provinceId);
 
-    @Insert("MERGE INTO province_quota(major_id, province_id, quota) KEY(major_id, province_id) VALUES(#{majorId}, #{provinceId}, #{quota})")
+    @Insert("INSERT INTO province_quota(major_id, province_id, quota) " +
+            "VALUES(#{majorId}, #{provinceId}, #{quota}) " +
+            "ON CONFLICT (major_id, province_id) DO UPDATE SET quota = EXCLUDED.quota")
     int insertOrUpdate(ProvinceQuota quota);
 
     @Delete("DELETE FROM province_quota WHERE major_id = #{majorId} AND province_id = #{provinceId}")

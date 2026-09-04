@@ -3,19 +3,17 @@ server:
 
 spring:
   datasource:
-    url: jdbc:h2:file:./data/gaokao;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+    url: ${GAOKAO_DB_URL:jdbc:postgresql://localhost:15432/gaokao}
+    driver-class-name: org.postgresql.Driver
+    username: ${GAOKAO_DB_USERNAME:gaokao}
+    password: ${GAOKAO_DB_PASSWORD:gaokao_dev_password}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    validate-on-migrate: true
   sql:
     init:
-      mode: always
-      continue-on-error: true
-      schema-locations: classpath:db/schema.sql
+      mode: never
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml
@@ -31,7 +29,7 @@ logging:
 
 gaokao:
   demo-data:
-    enabled: true
+    enabled: ${GAOKAO_DEMO_DATA_ENABLED:false}
   application-window:
     start: 2026-01-01T00:00:00
     end: 2026-12-31T23:59:59

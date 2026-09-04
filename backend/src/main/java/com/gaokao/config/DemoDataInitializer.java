@@ -2,7 +2,7 @@ package com.gaokao.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import javax.sql.DataSource;
 
 @Component
+@ConditionalOnProperty(name = "gaokao.demo-data.enabled", havingValue = "true")
 public class DemoDataInitializer implements CommandLineRunner {
 
     @Autowired
@@ -19,18 +20,8 @@ public class DemoDataInitializer implements CommandLineRunner {
     @Autowired
     private DataSource dataSource;
 
-    @Value("${gaokao.demo-data.enabled:true}")
-    private boolean demoDataEnabled;
-
-    @Value("${spring.datasource.url:}")
-    private String datasourceUrl;
-
     @Override
     public void run(String... args) {
-        if (!demoDataEnabled || !datasourceUrl.startsWith("jdbc:h2:")) {
-            return;
-        }
-
         Integer provinceCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM province", Integer.class);
         if (provinceCount != null && provinceCount > 0) {
             repairMajorSubjectTypes();
