@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.stereotype.Component;
@@ -12,6 +13,7 @@ import javax.sql.DataSource;
 
 @Component
 @ConditionalOnProperty(name = "gaokao.demo-data.enabled", havingValue = "true")
+@Order(0)
 public class DemoDataInitializer implements CommandLineRunner {
 
     @Autowired
@@ -57,6 +59,7 @@ public class DemoDataInitializer implements CommandLineRunner {
                 )
                 WHERE role = 'STUDENT'
                   AND student_id IS NULL
+                  AND candidate_id IS NULL
                   AND EXISTS (
                     SELECT 1 FROM student s WHERE s.student_no = sys_user.username
                   )

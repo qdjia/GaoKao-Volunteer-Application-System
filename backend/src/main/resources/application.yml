@@ -2,6 +2,10 @@ server:
   port: 8080
 
 spring:
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 3MB
   datasource:
     url: ${GAOKAO_DB_URL:jdbc:postgresql://localhost:15432/gaokao}
     driver-class-name: org.postgresql.Driver
@@ -28,6 +32,14 @@ logging:
     org.mybatis: warn
 
 gaokao:
+  security:
+    jwt-secret: ${GAOKAO_JWT_SECRET:}
+    session-duration: 2h
+    max-login-attempts: 5
+    lock-duration: 15m
+    allowed-origins: ${GAOKAO_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}
+    admin-username: ${GAOKAO_ADMIN_USERNAME:}
+    admin-password: ${GAOKAO_ADMIN_PASSWORD:}
   demo-data:
     enabled: ${GAOKAO_DEMO_DATA_ENABLED:false}
   application-window:

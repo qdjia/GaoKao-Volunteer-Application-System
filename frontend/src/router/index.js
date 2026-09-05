@@ -3,12 +3,13 @@ import { useUserStore } from '../stores/user'
 
 const routes = [
   { path: '/login', name: 'Login', component: () => import('../views/Login.vue') },
-  { path: '/register', name: 'Register', component: () => import('../views/Register.vue') },
+  { path: '/change-password', name: 'ChangePassword', component: () => import('../views/ChangePassword.vue'), meta: { title: '修改密码' } },
   {
     path: '/',
     component: () => import('../layout/MainLayout.vue'),
     redirect: '/dashboard',
     children: [
+      { path: 'excel', name: 'ExcelData', component: () => import('../views/ExcelData.vue'), meta: { title: '数据导入导出', roles: ['ADMIN', 'STUDENT'] } },
       { path: 'dashboard', name: 'Dashboard', component: () => import('../views/admission/Dashboard.vue'), meta: { title: '数据看板' } },
       { path: 'students', name: 'StudentList', component: () => import('../views/student/StudentList.vue'), meta: { title: '学生管理', roles: ['ADMIN'] } },
       { path: 'classes', name: 'ClassList', component: () => import('../views/student/ClassList.vue'), meta: { title: '班级管理', roles: ['ADMIN'] } },
@@ -27,15 +28,19 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  if (to.path !== '/login' && to.path !== '/register') {
-    const store = useUserStore()
+  const store = useUserStore()
+  if (to.path !== '/login') {
     if (!store.token) {
       next('/login')
+    } else if (store.mustChangePassword && to.path !== '/change-password') {
+      next('/change-password')
     } else if (to.meta.roles && !to.meta.roles.includes(store.role)) {
       next('/dashboard')
     } else {
       next()
     }
+  } else if (store.token) {
+    next(store.mustChangePassword ? '/change-password' : '/dashboard')
   } else {
     next()
   }

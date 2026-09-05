@@ -7,6 +7,10 @@
       </div>
       <el-menu :default-active="route.path" :collapse="isCollapse" router background-color="#304156"
         text-color="#bfcbd9" active-text-color="#409EFF">
+        <el-menu-item index="/excel">
+          <el-icon><Document /></el-icon>
+          <template #title>{{ store.isAdmin() ? '数据导入导出' : '正式志愿表' }}</template>
+        </el-menu-item>
         <el-menu-item index="/dashboard">
           <el-icon><DataAnalysis /></el-icon>
           <template #title>数据看板</template>
@@ -44,6 +48,7 @@
             </el-tag>
           </span>
           <span class="username">{{ store.username }}</span>
+          <el-button text @click="router.push('/change-password')">修改密码</el-button>
           <el-button type="danger" text @click="handleLogout">退出</el-button>
         </div>
       </el-header>
@@ -63,7 +68,7 @@ import { logout as logoutApi } from '../api'
 const route = useRoute()
 const router = useRouter()
 const store = useUserStore()
-const isCollapse = ref(false)
+const isCollapse = ref(window.innerWidth < 768)
 
 const handleLogout = async () => {
   try { await logoutApi() } catch (e) {}
@@ -82,4 +87,12 @@ const handleLogout = async () => {
 .header-right { display: flex; align-items: center; gap: 12px; }
 .username { font-size: 14px; color: #333; }
 .main-content { background: #f0f2f5; min-height: 0; overflow-y: auto; }
+.main-layout > .el-container { min-width: 0; }
+@media (max-width: 640px) {
+  .main-content { padding: 10px; }
+  .header { padding: 0 10px; }
+  .header-right { gap: 4px; }
+  .username { max-width: 80px; overflow: hidden; text-overflow: ellipsis; }
+  .role-tag { display: none; }
+}
 </style>

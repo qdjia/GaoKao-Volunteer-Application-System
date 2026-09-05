@@ -19,11 +19,6 @@ INSERT INTO student (id, student_no, name, gender, total_score, chinese_score, m
 (4, '2024004', '赵六', '女', 590, 120, 124, 121, 10, 3, '物化生', '13800000004'),
 (5, '2024005', '钱七', '男', 560, 116, 119, 115, 10, 3, '物化地', '13800000005');
 
-INSERT INTO sys_user (id, username, password, role, student_id) VALUES
-(1, 'admin', 'admin123', 'ADMIN', NULL),
-(2, '2024001', '123456', 'STUDENT', 1),
-(3, '2024002', '123456', 'STUDENT', 2);
-
 INSERT INTO university (id, name, type, province_id, batch) VALUES
 (1, '清华大学', '985', 1, '本科一批'),
 (2, '北京大学', '985', 1, '本科一批'),

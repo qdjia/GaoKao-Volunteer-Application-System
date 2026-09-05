@@ -12,7 +12,8 @@ public interface SysUserMapper {
     @Select("SELECT * FROM sys_user WHERE id = #{id}")
     SysUser findById(@Param("id") Long id);
 
-    @Insert("INSERT INTO sys_user(username, password, role, student_id) VALUES(#{username}, #{password}, #{role}, #{studentId})")
+    @Insert("INSERT INTO sys_user(username, password, role, student_id, must_change_password) " +
+            "VALUES(#{username}, #{password}, #{role}, #{studentId}, #{mustChangePassword})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(SysUser user);
 }

@@ -47,8 +47,17 @@ class PostgreSqlMigrationTest {
                         "WHERE table_schema = 'public' AND table_name = 'application'",
                 Integer.class);
 
-        assertThat(migrationCount).isEqualTo(1);
+        Integer domainTableCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM information_schema.tables " +
+                        "WHERE table_schema = 'public' AND table_name = 'admission_run'",
+                Integer.class);
+        Integer subjectCombinationCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM subject_combination", Integer.class);
+
+        assertThat(migrationCount).isEqualTo(5);
         assertThat(applicationTableCount).isEqualTo(1);
+        assertThat(domainTableCount).isEqualTo(1);
+        assertThat(subjectCombinationCount).isEqualTo(12);
     }
 
     @Test

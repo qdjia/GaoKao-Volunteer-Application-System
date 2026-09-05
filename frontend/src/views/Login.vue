@@ -14,12 +14,8 @@
           <el-button type="primary" size="large" :loading="loading" @click="handleLogin" style="width: 100%">登 录</el-button>
         </el-form-item>
       </el-form>
-      <div class="login-footer">
-        还没有账号？<el-link type="primary" @click="router.push('/register')">立即注册</el-link>
-      </div>
       <div class="login-tips">
-        <p>管理员：admin / admin123</p>
-        <p>学生：2024001 / 123456</p>
+        本系统仅用于黑龙江省普通高考志愿投档模拟，不代表省招考院或高校正式录取结果。
       </div>
     </div>
   </div>
@@ -50,7 +46,7 @@ const handleLogin = async () => {
     const res = await login(form)
     store.setLogin(res.data)
     ElMessage.success('登录成功')
-    router.push('/dashboard')
+    router.push(res.data.mustChangePassword ? '/change-password' : '/dashboard')
   } finally {
     loading.value = false
   }
@@ -62,5 +58,4 @@ const handleLogin = async () => {
 .login-card { width: 420px; padding: 40px; background: #fff; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
 .login-title { text-align: center; margin-bottom: 30px; color: #333; font-size: 22px; }
 .login-tips { margin-top: 16px; padding: 12px; background: #f5f7fa; border-radius: 6px; font-size: 13px; color: #909399; line-height: 1.8; }
-.login-footer { text-align: center; font-size: 14px; color: #666; }
 </style>

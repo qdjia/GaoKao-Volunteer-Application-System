@@ -5,8 +5,10 @@ import com.gaokao.service.AdmissionService;
 import com.gaokao.service.ApplicationService;
 import com.gaokao.service.ApplicationWindowService;
 import com.gaokao.service.StudentService;
+import com.gaokao.security.AuthTokenService;
+import com.gaokao.security.AuthenticatedUser;
+import com.gaokao.security.ClientNetworkPolicy;
 import com.gaokao.util.AuthInterceptor;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -36,24 +39,21 @@ class PermissionControllerTest {
     @Mock private ApplicationService applicationService;
     @Mock private ApplicationWindowService applicationWindowService;
     @Mock private StudentService studentService;
+    @Mock private AuthTokenService authTokenService;
     @InjectMocks private AdmissionController admissionController;
     @InjectMocks private ApplicationController applicationController;
     @InjectMocks private StudentController studentController;
 
     @BeforeEach
     void setUpTokens() {
-        AuthInterceptor.TOKEN_MAP.clear();
-        AuthInterceptor.TOKEN_MAP.put("admin-token", "admin:ADMIN:null");
-        AuthInterceptor.TOKEN_MAP.put("student-token", "2024001:STUDENT:1");
+        org.mockito.Mockito.lenient().when(authTokenService.authenticate("admin-token")).thenReturn(new AuthenticatedUser(
+                1L, "admin", "ADMIN", null, UUID.randomUUID(), "LOCAL_ADMIN", false));
+        org.mockito.Mockito.lenient().when(authTokenService.authenticate("student-token")).thenReturn(new AuthenticatedUser(
+                2L, "2024001", "STUDENT", 1L, UUID.randomUUID(), "PUBLIC_CANDIDATE", false));
         mockMvc = MockMvcBuilders.standaloneSetup(admissionController, applicationController, studentController)
                 .setControllerAdvice(new GlobalExceptionHandler())
-                .addInterceptors(new AuthInterceptor())
+                .addInterceptors(new AuthInterceptor(authTokenService, new ClientNetworkPolicy()))
                 .build();
-    }
-
-    @AfterEach
-    void clearTokens() {
-        AuthInterceptor.TOKEN_MAP.clear();
     }
 
     @Test
@@ -117,7 +117,7 @@ class PermissionControllerTest {
 
     @Test
     void malformedSubmissionReturnsBadRequest() throws Exception {
-        org.mockito.Mockito.doThrow(new RuntimeException("学生ID不能为空"))
+        org.mockito.Mockito.doThrow(new IllegalArgumentException("学生ID不能为空"))
                 .when(applicationService).submitApplication(any());
 
         mockMvc.perform(post("/api/applications/submit")
