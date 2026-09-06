@@ -17,6 +17,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @ExceptionHandler(com.gaokao.workflow.WorkflowConflictException.class)
+    public ResponseEntity<Result<Void>> handleConflict(RuntimeException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Result.error(409,e.getMessage()));
+    }
+
     @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
     public ResponseEntity<Result<Void>> handleUploadTooLarge(Exception e) {
         return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(Result.error(413, "Excel文件不得超过2MB"));

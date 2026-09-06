@@ -4,6 +4,7 @@ import com.gaokao.admission.AdmissionResultView;
 import com.gaokao.admission.AdmissionRunService;
 import com.gaokao.admission.AdmissionRunSummary;
 import com.gaokao.admission.AdmissionTraceView;
+import com.gaokao.workflow.AdminWorkflowService;
 import com.gaokao.util.AuthContext;
 import com.gaokao.util.Result;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,9 +21,11 @@ import java.util.List;
 @RequestMapping("/api/admission-runs")
 public class AdmissionRunController {
     private final AdmissionRunService admissionRunService;
+    private final AdminWorkflowService workflow;
 
-    public AdmissionRunController(AdmissionRunService admissionRunService) {
+    public AdmissionRunController(AdmissionRunService admissionRunService, AdminWorkflowService workflow) {
         this.admissionRunService = admissionRunService;
+        this.workflow = workflow;
     }
 
     @PostMapping
@@ -31,7 +34,7 @@ public class AdmissionRunController {
             HttpServletRequest request
     ) {
         AuthContext.CurrentUser currentUser = AuthContext.requireAdmin(request);
-        return Result.success(admissionRunService.execute(batchId, currentUser.userId()));
+        return Result.success(workflow.execute(currentUser.userId(), batchId));
     }
 
     @GetMapping("/{runId}/results")

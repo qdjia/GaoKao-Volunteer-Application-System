@@ -25,6 +25,7 @@ public class AdmissionRunStore {
     }
 
     public AdmissionRunSource.Batch lockBatch(long batchId) {
+        jdbcTemplate.queryForList("SELECT pg_advisory_xact_lock_shared(20260905,1)");
         List<AdmissionRunSource.Batch> rows = jdbcTemplate.query(
                 "SELECT id, exam_year_id, status FROM admission_batch WHERE id = ? FOR UPDATE",
                 (rs, rowNum) -> new AdmissionRunSource.Batch(

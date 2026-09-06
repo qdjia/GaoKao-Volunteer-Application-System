@@ -71,6 +71,7 @@ import { ElMessage } from 'element-plus'
 import { Download, FolderOpened, Plus, Refresh, Upload } from '@element-plus/icons-vue'
 import { useUserStore } from '../stores/user'
 import { getExcelContext, initializeBatch, importExcel, downloadExcel } from '../api/excel'
+import { formatTime } from '../utils/workflow'
 
 const store = useUserStore()
 const context = ref({})
@@ -133,7 +134,6 @@ async function downloadRun(id) {
 async function downloadVolunteer(row) {
   try { await downloadExcel(`volunteers/${row.candidate_id}`, `volunteer-${row.exam_number}.xlsx`, { batchId: row.admission_batch_id }) } catch (_) {}
 }
-const formatTime = value => value ? String(value).replace('T', ' ').slice(0, 19) : ''
 onMounted(refresh)
 </script>
 

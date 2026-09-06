@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gaokao.domain.SecondarySubject;
 import com.gaokao.domain.SubjectCategory;
 import com.gaokao.domain.SubjectCombination;
+import com.gaokao.workflow.WorkflowProperties;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,11 +22,13 @@ public class ExcelImportService {
     private final PasswordEncoder passwords;
     private final ObjectMapper json;
     private final TransactionTemplate transaction;
+    private final WorkflowProperties workflow;
 
     public ExcelImportService(JdbcTemplate db, ExcelWorkbook excel, PasswordEncoder passwords,
-                              ObjectMapper json, PlatformTransactionManager manager) {
+                              ObjectMapper json, PlatformTransactionManager manager, WorkflowProperties workflow) {
         this.db = db; this.excel = excel; this.passwords = passwords; this.json = json;
         this.transaction = new TransactionTemplate(manager);
+        this.workflow = workflow;
     }
 
     public List<Map<String, Object>> batches() {
@@ -141,8 +144,8 @@ public class ExcelImportService {
             Long id = row.id;
             String mask = row.idCard.substring(0, 3) + "*************" + row.idCard.substring(16);
             if (id == null) {
-                id = db.queryForObject("INSERT INTO candidate(exam_year_id,exam_number,name,masked_id_card,category_code,subject_combination_code) " +
-                        "VALUES (?,?,?,?,?,?) RETURNING id", Long.class, yearId, row.number, row.name, mask, row.category, row.combination);
+                id = db.queryForObject("INSERT INTO candidate(exam_year_id,exam_number,name,masked_id_card,category_code,subject_combination_code,data_origin) " +
+                        "VALUES (?,?,?,?,?,?,?) RETURNING id", Long.class, yearId, row.number, row.name, mask, row.category, row.combination, workflow.getMode().name());
                 created++;
             } else {
                 if (!row.submitted) db.update("DELETE FROM candidate_score WHERE candidate_id=?", id);

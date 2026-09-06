@@ -38,7 +38,7 @@ request.interceptors.response.use(
   },
   async error => {
     if (!error.response) {
-      ElMessage.error('网络连接异常，请检查后端是否启动')
+      if (!error.config?.silent) ElMessage.error('网络连接异常，请检查后端是否启动')
       return Promise.reject(error)
     }
     const status = error.response.status
@@ -58,6 +58,8 @@ request.interceptors.response.use(
         ElMessage.warning('请先修改初始密码')
         router.push('/change-password').finally(() => { isRedirecting = false })
       }
+    } else if (error.config?.silent) {
+      return Promise.reject(error)
     } else if (status === 423) {
       ElMessage.error(error.response.data?.message || '账号暂时锁定')
     } else if (status === 500) {

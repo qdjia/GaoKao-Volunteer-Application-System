@@ -1,7 +1,7 @@
 <template>
   <div class="login-container">
     <div class="login-card">
-      <h2 class="login-title">高考平行志愿填报管理系统</h2>
+      <h2 class="login-title">黑龙江投档模拟</h2>
       <el-form ref="formRef" :model="form" :rules="rules" label-width="0">
         <el-form-item prop="username">
           <el-input v-model="form.username" placeholder="请输入用户名" prefix-icon="User" size="large" />
@@ -46,7 +46,8 @@ const handleLogin = async () => {
     const res = await login(form)
     store.setLogin(res.data)
     ElMessage.success('登录成功')
-    router.push(res.data.mustChangePassword ? '/change-password' : '/dashboard')
+    router.push(res.data.mustChangePassword ? '/change-password' : res.data.role === 'ADMIN' ? '/admin' : '/application')
+  } catch (_) {
   } finally {
     loading.value = false
   }
@@ -54,8 +55,8 @@ const handleLogin = async () => {
 </script>
 
 <style scoped>
-.login-container { height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-.login-card { width: 420px; padding: 40px; background: #fff; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+.login-container { min-height: 100dvh; box-sizing: border-box; padding: 20px; display: flex; align-items: center; justify-content: center; background: #eef3f4; }
+.login-card { width: min(420px, 100%); box-sizing: border-box; padding: 28px; background: #fff; border: 1px solid #dce5e7; border-radius: 6px; }
 .login-title { text-align: center; margin-bottom: 30px; color: #333; font-size: 22px; }
-.login-tips { margin-top: 16px; padding: 12px; background: #f5f7fa; border-radius: 6px; font-size: 13px; color: #909399; line-height: 1.8; }
+.login-tips { margin-top: 16px; padding-top: 12px; border-top: 1px solid #e3e8ea; font-size: 13px; color: #66757a; line-height: 1.8; }
 </style>

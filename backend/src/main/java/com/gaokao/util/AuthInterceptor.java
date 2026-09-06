@@ -62,7 +62,9 @@ public class AuthInterceptor implements HandlerInterceptor {
     private boolean isPasswordChangePath(String uri) {
         return uri.endsWith("/api/auth/change-password")
                 || uri.endsWith("/api/auth/logout")
-                || uri.endsWith("/api/auth/info");
+                || uri.endsWith("/api/auth/info")
+                || uri.equals("/api/candidate/heartbeat")
+                || uri.equals("/api/candidate/offline");
     }
 
     private void writeError(HttpServletResponse response, int status, String message) {

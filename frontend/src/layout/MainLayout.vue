@@ -1,60 +1,26 @@
 <template>
   <el-container class="main-layout">
-    <el-aside :width="isCollapse ? '64px' : '220px'" class="aside">
-      <div class="logo">
-        <h3 v-show="!isCollapse">志愿填报系统</h3>
-        <h3 v-show="isCollapse">志愿</h3>
-      </div>
-      <el-menu :default-active="route.path" :collapse="isCollapse" router background-color="#304156"
-        text-color="#bfcbd9" active-text-color="#409EFF">
-        <el-menu-item index="/excel">
-          <el-icon><Document /></el-icon>
-          <template #title>{{ store.isAdmin() ? '数据导入导出' : '正式志愿表' }}</template>
-        </el-menu-item>
-        <el-menu-item index="/dashboard">
-          <el-icon><DataAnalysis /></el-icon>
-          <template #title>数据看板</template>
-        </el-menu-item>
-        <el-sub-menu index="student-mgr" v-if="store.isAdmin()">
-          <template #title><el-icon><User /></el-icon><span>学生管理</span></template>
-          <el-menu-item index="/students">学生信息</el-menu-item>
-          <el-menu-item index="/classes">班级管理</el-menu-item>
-        </el-sub-menu>
-        <el-sub-menu index="univ-mgr" v-if="store.isAdmin()">
-          <template #title><el-icon><School /></el-icon><span>院校管理</span></template>
-          <el-menu-item index="/universities">大学院系</el-menu-item>
-          <el-menu-item index="/score-lines">分数线</el-menu-item>
-        </el-sub-menu>
-        <el-menu-item index="/application">
-          <el-icon><EditPen /></el-icon>
-          <template #title>志愿填报</template>
-        </el-menu-item>
-        <el-sub-menu index="admission-mgr">
-          <template #title><el-icon><Finished /></el-icon><span>录取管理</span></template>
-          <el-menu-item index="/admission" v-if="store.isAdmin()">录取分配</el-menu-item>
-          <el-menu-item index="/admission-query">录取查询</el-menu-item>
-        </el-sub-menu>
+    <el-aside :width="collapsed ? '56px' : '196px'" class="aside">
+      <div class="brand">{{ collapsed ? '志愿' : '黑龙江投档模拟' }}</div>
+      <el-menu :default-active="route.path" :collapse="collapsed" router>
+        <el-menu-item v-if="store.isAdmin()" index="/admin"><el-icon><Setting /></el-icon><template #title>管理工作台</template></el-menu-item>
+        <el-menu-item v-if="store.isStudent()" index="/application"><el-icon><EditPen /></el-icon><template #title>志愿填报</template></el-menu-item>
+        <el-menu-item v-if="store.isStudent()" index="/results"><el-icon><Finished /></el-icon><template #title>投档结果</template></el-menu-item>
+        <el-menu-item index="/excel"><el-icon><Document /></el-icon><template #title>{{ store.isAdmin() ? '数据导入导出' : '正式志愿表' }}</template></el-menu-item>
       </el-menu>
     </el-aside>
-    <el-container>
+    <el-container class="body">
       <el-header class="header">
-        <el-icon class="collapse-btn" @click="isCollapse = !isCollapse">
-          <Fold v-if="!isCollapse" /><Expand v-else />
-        </el-icon>
-        <div class="header-right">
-          <span class="role-tag">
-            <el-tag :type="store.isAdmin() ? 'danger' : store.isStudent() ? 'success' : 'warning'" size="small">
-              {{ store.isAdmin() ? '管理员' : '考生' }}
-            </el-tag>
-          </span>
+        <el-button :icon="collapsed ? Expand : Fold" text aria-label="展开或收起导航" title="展开或收起导航" @click="collapsed = !collapsed" />
+        <div class="account">
           <span class="username">{{ store.username }}</span>
-          <el-button text @click="router.push('/change-password')">修改密码</el-button>
-          <el-button type="danger" text @click="handleLogout">退出</el-button>
+          <el-tag size="small" :type="store.isAdmin() ? 'warning' : 'success'">{{ store.isAdmin() ? '本机管理' : '考生' }}</el-tag>
+          <el-button :icon="Lock" text title="修改密码" aria-label="修改密码" @click="router.push('/change-password')" />
+          <el-button :icon="SwitchButton" text title="退出登录" aria-label="退出登录" @click="handleLogout" />
         </div>
       </el-header>
-      <el-main class="main-content">
-        <router-view />
-      </el-main>
+      <div class="notice">模拟结果仅供测试，不代表黑龙江省招生考试院正式投档结果</div>
+      <el-main class="main-content"><router-view /></el-main>
     </el-container>
   </el-container>
 </template>
@@ -62,37 +28,39 @@
 <script setup>
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { Fold, Expand, Lock, SwitchButton } from '@element-plus/icons-vue'
 import { useUserStore } from '../stores/user'
 import { logout as logoutApi } from '../api'
+import { confirmLeave } from '../utils/draftProtection'
 
-const route = useRoute()
-const router = useRouter()
-const store = useUserStore()
-const isCollapse = ref(window.innerWidth < 768)
-
-const handleLogout = async () => {
-  try { await logoutApi() } catch (e) {}
+const route = useRoute(), router = useRouter(), store = useUserStore()
+const collapsed = ref(window.innerWidth < 768)
+async function handleLogout() {
+  if (!(await confirmLeave())) return
+  try { await logoutApi() } catch (_) {}
   store.logout()
   router.push('/login')
 }
 </script>
 
 <style scoped>
-.main-layout { height: 100vh; }
-.aside { background: #304156; transition: width 0.3s; overflow: hidden; }
-.logo { height: 60px; display: flex; align-items: center; justify-content: center; color: #fff; background: #263445; }
-.logo h3 { margin: 0; font-size: 16px; white-space: nowrap; }
-.header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e6e6e6; background: #fff; }
-.collapse-btn { font-size: 20px; cursor: pointer; }
-.header-right { display: flex; align-items: center; gap: 12px; }
-.username { font-size: 14px; color: #333; }
-.main-content { background: #f0f2f5; min-height: 0; overflow-y: auto; }
-.main-layout > .el-container { min-width: 0; }
+.main-layout { height: 100dvh; background: #f4f6f7; }
+.aside { background: #fff; border-right: 1px solid #e3e7e9; overflow: hidden; }
+.brand { height: 60px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: #16776d; white-space: nowrap; }
+.el-menu { border: 0; }
+.el-menu--collapse { width: 56px; }
+.body { min-width: 0; }
+.header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e3e7e9; background: white; padding: 0 16px; }
+.account { display: flex; gap: 8px; align-items: center; min-width: 0; }
+.account .el-button + .el-button { margin: 0; }
+.username { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
+.notice { padding: 8px 20px; font-size: 12px; line-height: 1.6; color: #845711; background: #fff7df; }
+.main-content { min-height: 0; padding: 24px; }
 @media (max-width: 640px) {
-  .main-content { padding: 10px; }
-  .header { padding: 0 10px; }
-  .header-right { gap: 4px; }
-  .username { max-width: 80px; overflow: hidden; text-overflow: ellipsis; }
-  .role-tag { display: none; }
+  .header { padding: 0 4px; }
+  .account { gap: 2px; }
+  .username { max-width: 78px; }
+  .notice { padding: 8px 12px; }
+  .main-content { padding: 12px; }
 }
 </style>

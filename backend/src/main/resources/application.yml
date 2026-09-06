@@ -11,6 +11,8 @@ spring:
     driver-class-name: org.postgresql.Driver
     username: ${GAOKAO_DB_USERNAME:gaokao}
     password: ${GAOKAO_DB_PASSWORD:gaokao_dev_password}
+    hikari:
+      connection-init-sql: SET TIME ZONE 'UTC'
   flyway:
     enabled: true
     locations: classpath:db/migration
@@ -32,6 +34,9 @@ logging:
     org.mybatis: warn
 
 gaokao:
+  workflow:
+    mode: ${GAOKAO_APP_MODE:PRODUCTION}
+    notice-version: ${GAOKAO_NOTICE_VERSION:2026-1}
   security:
     jwt-secret: ${GAOKAO_JWT_SECRET:}
     session-duration: 2h

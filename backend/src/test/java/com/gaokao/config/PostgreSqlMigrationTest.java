@@ -54,7 +54,7 @@ class PostgreSqlMigrationTest {
         Integer subjectCombinationCount = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM subject_combination", Integer.class);
 
-        assertThat(migrationCount).isEqualTo(5);
+        assertThat(migrationCount).isEqualTo(6);
         assertThat(applicationTableCount).isEqualTo(1);
         assertThat(domainTableCount).isEqualTo(1);
         assertThat(subjectCombinationCount).isEqualTo(12);

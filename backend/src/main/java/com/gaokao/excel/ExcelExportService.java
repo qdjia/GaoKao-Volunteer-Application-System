@@ -1,5 +1,7 @@
 package com.gaokao.excel;
 
+import com.gaokao.util.DatabaseTime;
+
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -21,16 +23,16 @@ public class ExcelExportService {
     }
 
     public List<Map<String, Object>> runs() {
-        return db.queryForList("SELECT r.id,r.run_no,r.admission_batch_id,b.name,r.created_at FROM admission_run r " +
-                "JOIN admission_batch b ON b.id=r.admission_batch_id WHERE r.status='COMPLETED' ORDER BY r.id DESC LIMIT 100");
+        return DatabaseTime.normalize(db.queryForList("SELECT r.id,r.run_no,r.admission_batch_id,b.name,r.created_at FROM admission_run r " +
+                "JOIN admission_batch b ON b.id=r.admission_batch_id WHERE r.status='COMPLETED' ORDER BY r.id DESC LIMIT 100"),"created_at");
     }
 
     public List<Map<String, Object>> submissions(Long candidateId) {
-        return db.queryForList("SELECT DISTINCT ON (s.candidate_id,s.admission_batch_id) s.id,s.candidate_id,s.admission_batch_id,s.version_no," +
+        return DatabaseTime.normalize(db.queryForList("SELECT DISTINCT ON (s.candidate_id,s.admission_batch_id) s.id,s.candidate_id,s.admission_batch_id,s.version_no," +
                 "c.exam_number,c.name,b.name AS batch_name,s.submitted_at FROM volunteer_submission s JOIN candidate c ON c.id=s.candidate_id " +
                 "JOIN admission_batch b ON b.id=s.admission_batch_id WHERE b.application_ends_at IS NOT NULL " +
                 "AND s.submitted_at<=b.application_ends_at AND s.submitted_at<=CURRENT_TIMESTAMP AND (?::bigint IS NULL OR c.id=?) " +
-                "ORDER BY s.candidate_id,s.admission_batch_id,s.version_no DESC", candidateId, candidateId);
+                "ORDER BY s.candidate_id,s.admission_batch_id,s.version_no DESC", candidateId, candidateId),"submitted_at");
     }
 
     @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
@@ -41,6 +43,7 @@ public class ExcelExportService {
                 "WHERE s.candidate_id=? AND s.admission_batch_id=? AND s.submitted_at<=b.application_ends_at AND s.submitted_at<=CURRENT_TIMESTAMP " +
                 "ORDER BY s.version_no DESC LIMIT 1", candidateId, batchId);
         if (found.isEmpty()) throw new IllegalArgumentException("没有截止前有效的正式提交，草稿不能导出为正式志愿表");
+        DatabaseTime.normalize(found,"submitted_at","application_ends_at");
         Map<String, Object> submission = found.get(0);
         List<List<?>> info = new ArrayList<>();
         info.add(List.of("文件版本", "1.0"));
@@ -74,6 +77,7 @@ public class ExcelExportService {
         List<Map<String, Object>> runs = db.queryForList("SELECT id,admission_batch_id,run_no,operator_user_id,started_at,completed_at " +
                 "FROM admission_run WHERE id=? AND status='COMPLETED'", runId);
         if (runs.isEmpty()) throw new IllegalArgumentException("投档运行不存在或尚未完成");
+        DatabaseTime.normalize(runs,"started_at","completed_at");
         List<List<?>> audit = new ArrayList<>();
         audit.add(List.of("用途", "模拟结果仅供测试，不代表黑龙江省招生考试院正式投档结果"));
         for (Map.Entry<String, Object> entry : runs.get(0).entrySet()) audit.add(Arrays.asList(entry.getKey(), entry.getValue()));
