@@ -36,6 +36,6 @@ public class AuthTokenService {
         }
         return new AuthenticatedUser(
                 session.userId(), session.username(), session.role(), session.studentId(),
-                session.sessionId(), session.audience(), session.mustChangePassword());
+                session.sessionId(), session.audience(), session.mustChangePassword(), session.permanentDemo());
     }
 }

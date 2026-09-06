@@ -9,6 +9,7 @@ public record AuthenticatedUser(
         Long studentId,
         UUID sessionId,
         String audience,
-        boolean mustChangePassword
+        boolean mustChangePassword,
+        boolean permanentDemo
 ) {
 }

@@ -17,7 +17,7 @@ class SecurityDtoRedactionTest {
         ChangePasswordRequest change = new ChangePasswordRequest("Secret123", "Changed456");
         AuthLoginResult result = new AuthLoginResult(
                 "signed.jwt.value", "STUDENT", "0000000001", 987654321L, true,
-                Instant.parse("2026-09-05T00:00:00Z"));
+                Instant.parse("2026-09-05T00:00:00Z"), false);
 
         assertThat(login.toString()).doesNotContain("0000000001", "Secret123");
         assertThat(change.toString()).doesNotContain("Secret123", "Changed456");

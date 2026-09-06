@@ -47,9 +47,9 @@ class PermissionControllerTest {
     @BeforeEach
     void setUpTokens() {
         org.mockito.Mockito.lenient().when(authTokenService.authenticate("admin-token")).thenReturn(new AuthenticatedUser(
-                1L, "admin", "ADMIN", null, UUID.randomUUID(), "LOCAL_ADMIN", false));
+                1L, "admin", "ADMIN", null, UUID.randomUUID(), "LOCAL_ADMIN", false, false));
         org.mockito.Mockito.lenient().when(authTokenService.authenticate("student-token")).thenReturn(new AuthenticatedUser(
-                2L, "2024001", "STUDENT", 1L, UUID.randomUUID(), "PUBLIC_CANDIDATE", false));
+                2L, "2024001", "STUDENT", 1L, UUID.randomUUID(), "PUBLIC_CANDIDATE", false, false));
         mockMvc = MockMvcBuilders.standaloneSetup(admissionController, applicationController, studentController)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .addInterceptors(new AuthInterceptor(authTokenService, new ClientNetworkPolicy()))

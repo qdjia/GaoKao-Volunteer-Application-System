@@ -64,6 +64,7 @@ public class AuthController {
         data.put("role", user.role());
         data.put("studentId", user.studentId());
         data.put("mustChangePassword", user.mustChangePassword());
+        data.put("permanentDemo", AuthContext.authenticatedUser(request).permanentDemo());
         return Result.success(data);
     }
 }

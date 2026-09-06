@@ -88,7 +88,7 @@ public class AuthService {
                 client.ipHash(), client.userAgentHash());
         return new AuthLoginResult(
                 token, account.role(), account.username(), account.studentId(),
-                account.mustChangePassword(), expiresAt);
+                account.mustChangePassword(), expiresAt, account.permanentDemo());
     }
 
     @Transactional
@@ -98,11 +98,12 @@ public class AuthService {
 
     @Transactional
     public void changePassword(AuthenticatedUser user, String currentPassword, String newPassword) {
-        validateNewPassword(newPassword);
         AuthSessionStore.Account account = store.lockAccountById(user.userId());
         if (account == null || !"ACTIVE".equals(account.status())) {
             throw new UnauthenticatedException("账号不存在或已禁用");
         }
+        if (account.permanentDemo()) throw new SecurityException("固定体验账号不允许修改密码");
+        validateNewPassword(newPassword);
         if (!passwordEncoder.matches(currentPassword == null ? "" : currentPassword, account.passwordHash())) {
             throw new UnauthenticatedException("当前密码错误");
         }
@@ -121,6 +122,9 @@ public class AuthService {
         if (operatorUserId == targetUserId && "DISABLED".equals(status)) {
             throw new IllegalArgumentException("管理员不能禁用当前登录账号");
         }
+        AuthSessionStore.Account account = store.lockAccountById(targetUserId);
+        if (account == null) throw new IllegalArgumentException("账号不存在");
+        if (account.permanentDemo() && "DISABLED".equals(status)) throw new SecurityException("固定体验账号不能禁用");
         store.updateAccountStatus(targetUserId, status);
         if ("DISABLED".equals(status)) {
             store.revokeActiveSessions(targetUserId, "ACCOUNT_DISABLED");

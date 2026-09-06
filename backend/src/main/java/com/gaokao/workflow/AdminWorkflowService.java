@@ -24,7 +24,7 @@ public class AdminWorkflowService {
     @Transactional(readOnly=true)
     public Map<String,Object> overview() {
         return Map.of("mode",properties.getMode().name(),"onlineCount",presence.onlineCount(),"serverTime",store.now(),
-                "batches",store.batches(),"candidates",db.queryForList("SELECT c.id,c.exam_number,c.name,c.category_code,c.data_origin,c.status,s.culture_total,s.final_rank,u.id AS user_id,u.account_status " +
+                "batches",store.batches(),"candidates",db.queryForList("SELECT c.id,c.exam_number,c.name,c.category_code,c.data_origin,c.status,s.culture_total,s.final_rank,u.id AS user_id,u.account_status,u.demo_slot " +
                         "FROM candidate c LEFT JOIN candidate_score s ON s.candidate_id=c.id LEFT JOIN sys_user u ON u.candidate_id=c.id ORDER BY c.category_code,s.final_rank,c.id"),
                 "runs",DatabaseTime.normalize(db.queryForList("SELECT id,admission_batch_id,run_no,status,created_at,completed_at FROM admission_run ORDER BY id DESC LIMIT 100"),"created_at","completed_at"),
                 "audit",db.queryForList("SELECT id,operator_user_id,action,target_id,before_json::text,after_json::text,created_at FROM workflow_audit ORDER BY id DESC LIMIT 50"));
@@ -77,8 +77,10 @@ public class AdminWorkflowService {
         if(!"删除体验数据".equals(confirmation)) throw new IllegalArgumentException("请输入“删除体验数据”进行二次确认");
         store.exclusiveLock();
         List<Long> candidates=db.queryForList("SELECT id FROM candidate WHERE data_origin='DEMO' ORDER BY id FOR UPDATE",Long.class);
-        if(candidates.isEmpty()) return Map.of("deletedCandidates",0,"deletedRuns",0);
+        if(candidates.isEmpty()) return Map.of("deletedCandidates",0,"deletedRuns",0,"preservedAccounts",0);
         String candidateIds=candidates.stream().map(String::valueOf).collect(Collectors.joining(","));
+        db.queryForList("SELECT id FROM sys_user WHERE candidate_id=ANY(string_to_array(?,',')::bigint[]) ORDER BY id FOR UPDATE",candidateIds);
+        int preserved=db.queryForObject("SELECT COUNT(*) FROM sys_user WHERE demo_slot IS NOT NULL AND candidate_id=ANY(string_to_array(?,',')::bigint[])",Integer.class,candidateIds);
         List<Long> runIds=db.queryForList("SELECT DISTINCT s.run_id FROM admission_candidate_snapshot s JOIN candidate c ON c.id=s.source_candidate_id WHERE c.data_origin='DEMO'",Long.class);
         if(!runIds.isEmpty()) {
             String ids=runIds.stream().map(String::valueOf).collect(Collectors.joining(","));
@@ -94,10 +96,12 @@ public class AdminWorkflowService {
         db.update("DELETE FROM volunteer_submission_item WHERE volunteer_submission_id IN (SELECT id FROM volunteer_submission WHERE candidate_id=ANY(string_to_array(?,',')::bigint[]))",candidateIds);
         db.update("DELETE FROM volunteer_submission WHERE candidate_id=ANY(string_to_array(?,',')::bigint[])",candidateIds);
         db.update("DELETE FROM volunteer_draft WHERE candidate_id=ANY(string_to_array(?,',')::bigint[])",candidateIds);
-        db.update("DELETE FROM sys_user WHERE candidate_id=ANY(string_to_array(?,',')::bigint[])",candidateIds);
-        db.update("DELETE FROM candidate_score WHERE candidate_id=ANY(string_to_array(?,',')::bigint[])",candidateIds);
-        db.update("DELETE FROM candidate WHERE id=ANY(string_to_array(?,',')::bigint[])",candidateIds);
-        var result=Map.of("deletedCandidates",candidates.size(),"deletedRuns",runIds.size());
+        db.update("DELETE FROM candidate_notice_acceptance WHERE candidate_id=ANY(string_to_array(?,',')::bigint[])",candidateIds);
+        db.update("DELETE FROM auth_session WHERE user_id IN (SELECT id FROM sys_user WHERE candidate_id=ANY(string_to_array(?,',')::bigint[]))",candidateIds);
+        db.update("DELETE FROM sys_user WHERE demo_slot IS NULL AND candidate_id=ANY(string_to_array(?,',')::bigint[])",candidateIds);
+        db.update("DELETE FROM candidate_score s WHERE candidate_id=ANY(string_to_array(?,',')::bigint[]) AND NOT EXISTS (SELECT 1 FROM sys_user u WHERE u.candidate_id=s.candidate_id AND u.demo_slot IS NOT NULL)",candidateIds);
+        db.update("DELETE FROM candidate c WHERE id=ANY(string_to_array(?,',')::bigint[]) AND NOT EXISTS (SELECT 1 FROM sys_user u WHERE u.candidate_id=c.id AND u.demo_slot IS NOT NULL)",candidateIds);
+        var result=Map.of("deletedCandidates",candidates.size()-preserved,"deletedRuns",runIds.size(),"preservedAccounts",preserved);
         store.audit(operator,"DEMO_RESET",0,Map.of("candidateIds",candidates,"runIds",runIds),result);
         return new LinkedHashMap<>(result);
     }

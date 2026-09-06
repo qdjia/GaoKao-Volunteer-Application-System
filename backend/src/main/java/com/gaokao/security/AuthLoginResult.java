@@ -8,7 +8,8 @@ public record AuthLoginResult(
         String username,
         Long studentId,
         boolean mustChangePassword,
-        Instant expiresAt
+        Instant expiresAt,
+        boolean permanentDemo
 ) {
     @Override
     public String toString() {

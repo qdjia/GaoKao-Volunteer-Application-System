@@ -23,12 +23,14 @@ public class ExcelImportService {
     private final ObjectMapper json;
     private final TransactionTemplate transaction;
     private final WorkflowProperties workflow;
+    private final PermanentDemoAccounts demoAccounts;
 
     public ExcelImportService(JdbcTemplate db, ExcelWorkbook excel, PasswordEncoder passwords,
-                              ObjectMapper json, PlatformTransactionManager manager, WorkflowProperties workflow) {
+                              ObjectMapper json, PlatformTransactionManager manager, WorkflowProperties workflow, PermanentDemoAccounts demoAccounts) {
         this.db = db; this.excel = excel; this.passwords = passwords; this.json = json;
         this.transaction = new TransactionTemplate(manager);
         this.workflow = workflow;
+        this.demoAccounts = demoAccounts;
     }
 
     public List<Map<String, Object>> batches() {
@@ -93,6 +95,15 @@ public class ExcelImportService {
     }
 
     private int[] importCandidates(List<ExcelWorkbook.InputRow> rows, long yearId, List<ExcelIssue> errors) {
+        boolean fixedDemo = rows.stream().anyMatch(row -> PermanentDemoAccounts.slot(row.get("准考证号")) > 0);
+        Map<String, String> identities = fixedDemo ? demoAccounts.identities() : Map.of();
+        if (fixedDemo && (rows.size() != PermanentDemoAccounts.COUNT || rows.stream().anyMatch(row -> !identities.containsKey(row.get("准考证号")))))
+            errors.add(new ExcelIssue("考生", 0, "准考证号", "固定体验账号必须整批导入指定的10人，不能新增、删减或混入普通考生"));
+        if (workflow.isDemo() && !fixedDemo)
+            errors.add(new ExcelIssue("考生", 0, "准考证号", "体验模式仅允许固定的10个体验账号，请下载当前系统的10人体验数据"));
+        if (fixedDemo && db.queryForObject("SELECT COUNT(*) FROM candidate c WHERE c.data_origin='DEMO' " +
+                "AND NOT EXISTS (SELECT 1 FROM sys_user u WHERE u.candidate_id=c.id AND u.demo_slot IS NOT NULL)", Integer.class) > 0)
+            errors.add(new ExcelIssue("考生", 0, "准考证号", "存在旧版非固定体验数据；请先确认无需保留，在体验模式执行重置体验记录后再导入，系统不会自动删除旧数据"));
         List<CandidateRow> valid = new ArrayList<>();
         Set<String> numbers = new HashSet<>();
         for (ExcelWorkbook.InputRow row : rows) {
@@ -103,7 +114,12 @@ public class ExcelImportService {
             String name = v.text("姓名", 50, true);
             String idCard = v.text("身份证号", 18, true).toUpperCase(Locale.ROOT);
             if (!idCard.matches("[0-9]{17}[0-9X]")) v.error("身份证号", "须为18位文本格式标识，末位可为X");
+            int demoSlot = PermanentDemoAccounts.slot(number);
+            if (demoSlot > 0 && !idCard.equals(identities.get(number)))
+                v.error("身份证号", "固定体验身份证和密码不能修改，请重新下载当前系统的体验表");
             String category = v.category();
+            if (demoSlot > 0 && !(demoSlot <= 5 ? "PHYSICS" : "HISTORY").equals(category))
+                v.error("科类", "固定体验账号须保持物理类和历史类各5人");
             String s1 = v.subject("再选科目1");
             String s2 = v.subject("再选科目2");
             if (s1.equals(s2)) v.error("再选科目2", "两门再选科目不能相同");
@@ -123,7 +139,10 @@ public class ExcelImportService {
             if (!s1.equals(canonicalFirst)) { BigDecimal swap = scores[4]; scores[4] = scores[5]; scores[5] = swap; }
             List<Map<String, Object>> existing = db.queryForList("SELECT * FROM candidate WHERE exam_year_id=? AND exam_number=? FOR UPDATE", yearId, number);
             Long candidateId = existing.isEmpty() ? null : ((Number)existing.get(0).get("id")).longValue();
-            List<Map<String, Object>> users = db.queryForList("SELECT id, role, candidate_id, student_id FROM sys_user WHERE username=? FOR UPDATE", number);
+            List<Map<String, Object>> users = db.queryForList("SELECT id, role, candidate_id, student_id, demo_slot FROM sys_user WHERE username=? FOR UPDATE", number);
+            if (demoSlot > 0 && ((!users.isEmpty() && !Integer.valueOf(demoSlot).equals(users.get(0).get("demo_slot")))
+                    || (candidateId != null && (users.isEmpty() || !"DEMO".equals(existing.get(0).get("data_origin"))))))
+                v.error("准考证号", "固定体验编号已被其他数据占用，不能覆盖或转换原账号，请联系管理员");
             if (!users.isEmpty()) {
                 Map<String, Object> user = users.get(0);
                 if (!"STUDENT".equals(user.get("role")) || candidateId == null || user.get("candidate_id") == null
@@ -136,7 +155,7 @@ public class ExcelImportService {
             if (candidateId != null && !category.equals(existing.get(0).get("category_code"))
                     && exists("SELECT COUNT(*) FROM volunteer_draft WHERE candidate_id=?", candidateId))
                 v.error("科类", "该考生已有志愿草稿，须先处理草稿后再更改科类");
-            if (!v.invalid()) valid.add(new CandidateRow(row, number, name, idCard, category, combination.name(), scores, rank, candidateId, users.isEmpty(), submitted));
+            if (!v.invalid()) valid.add(new CandidateRow(row, number, name, idCard, category, combination.name(), scores, rank, candidateId, users.isEmpty(), submitted, demoSlot));
         }
         if (!errors.isEmpty()) throw new Rejected(errors);
         int created = 0, updated = 0;
@@ -145,7 +164,7 @@ public class ExcelImportService {
             String mask = row.idCard.substring(0, 3) + "*************" + row.idCard.substring(16);
             if (id == null) {
                 id = db.queryForObject("INSERT INTO candidate(exam_year_id,exam_number,name,masked_id_card,category_code,subject_combination_code,data_origin) " +
-                        "VALUES (?,?,?,?,?,?,?) RETURNING id", Long.class, yearId, row.number, row.name, mask, row.category, row.combination, workflow.getMode().name());
+                        "VALUES (?,?,?,?,?,?,?) RETURNING id", Long.class, yearId, row.number, row.name, mask, row.category, row.combination, row.demoSlot > 0 ? "DEMO" : workflow.getMode().name());
                 created++;
             } else {
                 if (!row.submitted) db.update("DELETE FROM candidate_score WHERE candidate_id=?", id);
@@ -157,8 +176,8 @@ public class ExcelImportService {
                             "foreign_language_score,primary_subject_score,secondary_subject_1_score,secondary_subject_2_score,policy_bonus,culture_total,final_rank) " +
                             "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", id, yearId, row.category, row.scores[0], row.scores[1], row.scores[2], row.scores[3],
                     row.scores[4], row.scores[5], row.scores[6], row.scores[7], row.rank);
-            if (row.createAccount) db.update("INSERT INTO sys_user(username,password,role,candidate_id,must_change_password) VALUES (?,?,'STUDENT',?,TRUE)",
-                    row.number, passwords.encode(row.idCard.substring(12)), id);
+            if (row.createAccount) db.update("INSERT INTO sys_user(username,password,role,candidate_id,must_change_password,demo_slot) VALUES (?,?,'STUDENT',?,?,?)",
+                    row.number, passwords.encode(row.idCard.substring(12)), id, row.demoSlot == 0, row.demoSlot == 0 ? null : row.demoSlot);
         }
         return new int[]{created, updated};
     }
@@ -343,7 +362,7 @@ public class ExcelImportService {
         int integer(String field, int min, int max) { return decimal(field, BigDecimal.valueOf(min), BigDecimal.valueOf(max), 0).intValue(); }
     }
     private record CandidateRow(ExcelWorkbook.InputRow source, String number, String name, String idCard, String category,
-                                String combination, BigDecimal[] scores, int rank, Long id, boolean createAccount, boolean submitted) {
+                                String combination, BigDecimal[] scores, int rank, Long id, boolean createAccount, boolean submitted, int demoSlot) {
         @Override public String toString() { return "CandidateRow[redacted]"; }
     }
     private record GroupRow(ExcelWorkbook.InputRow source, String code, String name, long province, String groupCode,

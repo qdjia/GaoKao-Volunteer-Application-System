@@ -5,11 +5,14 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
-import java.security.SecureRandom;
 import java.util.*;
 
 @Component
 public class ExcelWorkbook {
+    private final PermanentDemoAccounts demoAccounts;
+
+    public ExcelWorkbook(PermanentDemoAccounts demoAccounts) { this.demoAccounts = demoAccounts; }
+
     public static final String VERSION = "1.0";
     public static final String CANDIDATES = "candidates";
     public static final String PLANS = "plans";
@@ -17,6 +20,7 @@ public class ExcelWorkbook {
             "语文", "数学", "外语", "首选科目成绩", "再选科目1成绩", "再选科目2成绩", "政策加分", "文化课总分", "最终位次"};
     public static final String[] GROUP_HEADERS = {"院校代码", "院校名称", "省份", "专业组代码", "专业组名称", "科类", "必选再选科目", "招生人数", "投档比例"};
     public static final String[] MAJOR_HEADERS = {"院校代码", "专业组代码", "专业代码", "专业名称", "显示顺序", "限制说明"};
+    public static final String[] DEMO_HEADERS = {"登录用户名", "姓名", "科类", "固定密码", "说明"};
     public static final int MAX_ROWS = 1000;
 
     public record Table(String name, String[] headers, List<List<?>> rows) {}
@@ -35,7 +39,16 @@ public class ExcelWorkbook {
                 List.of("填表约定", "标识列按文本填写；不允许公式；再选科目填写化学/生物/政治/地理；投档比例填写1.00至1.05"),
                 List.of("导入规则", "任意一行错误则整批拒绝；重复准考证号保留密码；已提交考生成绩和选科不得变更"),
                 List.of("体验数据", demo ? "全部虚构；用于模拟控制线450分的边界样本，不代表官方控制线" : "空白模板"))));
-        if (CANDIDATES.equals(type)) tables.add(new Table("考生", CANDIDATE_HEADERS, demo ? demoCandidates() : List.of()));
+        if (CANDIDATES.equals(type)) {
+            List<List<?>> candidates = demo ? demoCandidates() : List.of();
+            tables.add(new Table("考生", CANDIDATE_HEADERS, candidates));
+            if (demo) {
+                List<List<?>> credentials = new ArrayList<>();
+                for (List<?> row : candidates) credentials.add(List.of(row.get(0), row.get(1), row.get(3),
+                        row.get(2).toString().substring(12), "固定体验密码，不可修改；导入本表后生效"));
+                tables.add(new Table("体验账号", DEMO_HEADERS, credentials));
+            }
+        }
         else {
             tables.add(new Table("专业组", GROUP_HEADERS, demo ? List.of(
                     List.of("DEMO001", "虚构体验大学", "黑龙江", "001", "物理体验组", "物理类", "", "3", "1.00"),
@@ -48,16 +61,16 @@ public class ExcelWorkbook {
     }
 
     private List<List<?>> demoCandidates() {
-        SecureRandom random = new SecureRandom();
+        Map<String, String> identities = demoAccounts.identities();
         List<List<?>> rows = new ArrayList<>();
         int[][] scores = {{140,140,130,90,90,90}, {120,110,100,80,70,70}, {110,120,100,80,70,70},
                 {90,90,90,60,60,60}, {89,90,90,60,60,60}};
         for (int category = 0; category < 2; category++) {
             for (int i = 0; i < 5; i++) {
                 int[] s = scores[i];
-                // The zero region prefix intentionally makes these identifiers fictitious.
-                String id = "000000200801" + String.format(Locale.ROOT, "%06d", random.nextInt(1000000));
-                rows.add(List.of("2026" + (category == 0 ? "1" : "2") + String.format(Locale.ROOT, "%05d", i + 1),
+                String number = PermanentDemoAccounts.username(category * 5 + i + 1);
+                String id = identities.get(number);
+                rows.add(List.of(number,
                         "体验" + (category == 0 ? "物理" : "历史") + (i + 1), id, category == 0 ? "物理类" : "历史类",
                         i % 2 == 0 ? "化学" : "政治", i % 2 == 0 ? "生物" : "地理",
                         ""+s[0], ""+s[1], ""+s[2], ""+s[3], ""+s[4], ""+s[5], "0",
@@ -82,6 +95,19 @@ public class ExcelWorkbook {
             List<InputRow> candidates = CANDIDATES.equals(type) ? readSheet(workbook, "考生", CANDIDATE_HEADERS, errors) : List.of();
             List<InputRow> groups = PLANS.equals(type) ? readSheet(workbook, "专业组", GROUP_HEADERS, errors) : List.of();
             List<InputRow> majors = PLANS.equals(type) ? readSheet(workbook, "专业", MAJOR_HEADERS, errors) : List.of();
+            if (candidates.stream().anyMatch(row -> PermanentDemoAccounts.slot(row.get("准考证号")) > 0)) {
+                List<InputRow> credentials = readSheet(workbook, "体验账号", DEMO_HEADERS, errors);
+                Set<String> seen = new HashSet<>();
+                for (InputRow row : credentials) {
+                    String number = row.get("登录用户名");
+                    Optional<InputRow> candidate = candidates.stream().filter(c -> c.get("准考证号").equals(number)).findFirst();
+                    if (!seen.add(number) || candidate.isEmpty() || !row.get("固定密码").matches("[0-9]{6}")
+                            || !candidate.get().get("身份证号").endsWith(row.get("固定密码")))
+                        errors.add(new ExcelIssue("体验账号", row.number(), "固定密码", "账号或密码与考生表不一致，请重新下载当前系统的体验表，不要修改凭据"));
+                }
+                if (credentials.size() != PermanentDemoAccounts.COUNT)
+                    errors.add(new ExcelIssue("体验账号", 0, "登录用户名", "必须保留完整的10个固定体验账号"));
+            }
             return new Parsed(candidates, groups, majors, errors);
         } catch (Exception e) {
             return new Parsed(List.of(), List.of(), List.of(), List.of(new ExcelIssue("文件", 0, "文件", "无法读取Excel，文件损坏、加密或格式不受支持")));
@@ -109,6 +135,8 @@ public class ExcelWorkbook {
                     errors.add(new ExcelIssue(name, i + 1, headers[j], "不允许公式或错误单元格"));
                     nonempty = true;
                 }
+                if (c != null && "身份证号".equals(headers[j]) && c.getCellType() == CellType.NUMERIC)
+                    errors.add(new ExcelIssue(name, i + 1, headers[j], "必须使用文本单元格；数字格式可能丢失位数，请从原始信息重新填写，不能只修改显示格式"));
                 if (value.length() > 500) { errors.add(new ExcelIssue(name, i + 1, headers[j], "内容超过500字符")); value = ""; }
                 values.put(headers[j], value);
             }
@@ -135,7 +163,7 @@ public class ExcelWorkbook {
                 Row head = sheet.createRow(0);
                 for (int i = 0; i < table.headers().length; i++) {
                     head.createCell(i).setCellValue(table.headers()[i]); head.getCell(i).setCellStyle(header);
-                    sheet.setColumnWidth(i, 22 * 256); sheet.setDefaultColumnStyle(i, text);
+                    sheet.setColumnWidth(i, ("身份证号".equals(table.headers()[i]) ? 28 : 22) * 256); sheet.setDefaultColumnStyle(i, text);
                 }
                 int index = 1;
                 for (List<?> values : table.rows()) {
@@ -143,6 +171,7 @@ public class ExcelWorkbook {
                     for (int i = 0; i < values.size(); i++) {
                         Object value = values.get(i);
                         row.createCell(i, CellType.STRING).setCellValue(value == null ? "" : value.toString());
+                        row.getCell(i).setCellStyle(text);
                     }
                 }
                 sheet.createFreezePane(0, 1);

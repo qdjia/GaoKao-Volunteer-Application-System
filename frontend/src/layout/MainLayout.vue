@@ -14,8 +14,8 @@
         <el-button :icon="collapsed ? Expand : Fold" text aria-label="展开或收起导航" title="展开或收起导航" @click="collapsed = !collapsed" />
         <div class="account">
           <span class="username">{{ store.username }}</span>
-          <el-tag size="small" :type="store.isAdmin() ? 'warning' : 'success'">{{ store.isAdmin() ? '本机管理' : '考生' }}</el-tag>
-          <el-button :icon="Lock" text title="修改密码" aria-label="修改密码" @click="router.push('/change-password')" />
+          <el-tag size="small" :type="store.isAdmin() ? 'warning' : 'success'">{{ store.isAdmin() ? '本机管理' : store.permanentDemo ? '固定体验' : '考生' }}</el-tag>
+          <el-button v-if="!store.permanentDemo" :icon="Lock" text title="修改密码" aria-label="修改密码" @click="router.push('/change-password')" />
           <el-button :icon="SwitchButton" text title="退出登录" aria-label="退出登录" @click="handleLogout" />
         </div>
       </el-header>

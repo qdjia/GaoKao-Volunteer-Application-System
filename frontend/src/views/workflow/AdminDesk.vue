@@ -38,7 +38,7 @@
           <el-table-column label="科类" width="90"><template #default="{ row }">{{ categoryName(row.category_code) }}</template></el-table-column>
           <el-table-column prop="culture_total" label="文化总分" width="90" /><el-table-column prop="final_rank" label="位次" width="90" />
           <el-table-column label="来源" width="90"><template #default="{ row }">{{ row.data_origin === 'DEMO' ? '体验' : '正式' }}</template></el-table-column>
-          <el-table-column label="账号状态" min-width="150"><template #default="{ row }"><el-switch :model-value="row.account_status === 'ACTIVE'" active-text="启用" inactive-text="禁用" :disabled="busy || !row.user_id" @change="toggleAccount(row, $event)" /></template></el-table-column>
+          <el-table-column label="账号状态" min-width="150"><template #default="{ row }"><el-tag v-if="row.demo_slot" type="success">固定体验</el-tag><el-switch v-else :model-value="row.account_status === 'ACTIVE'" active-text="启用" inactive-text="禁用" :disabled="busy || !row.user_id" @change="toggleAccount(row, $event)" /></template></el-table-column>
           <el-table-column label="提交版本" width="95"><template #default="{ row }"><el-button :icon="Document" circle title="查看全部提交版本" aria-label="查看全部提交版本" :disabled="!batchId" @click="viewVersions(row)" /></template></el-table-column>
         </el-table>
       </el-tab-pane>
@@ -61,7 +61,7 @@
         </el-table>
       </el-tab-pane>
     </el-tabs>
-    <div v-if="overview.mode === 'DEMO'" class="reset-area"><h3>体验数据</h3><el-button type="danger" plain :icon="Delete" :disabled="busy" @click="resetDemo">彻底删除体验数据</el-button></div>
+    <div v-if="overview.mode === 'DEMO'" class="reset-area"><h3>体验数据</h3><el-button type="danger" plain :icon="Delete" :disabled="busy" @click="resetDemo">重置体验记录</el-button></div>
     <el-dialog v-model="versionsVisible" :title="`${selectedCandidate?.name || ''} · 提交版本`" width="min(760px, 96vw)">
       <el-table :data="versions" empty-text="暂无正式提交"><el-table-column prop="version_no" label="版本" width="80" /><el-table-column label="提交时间" min-width="180"><template #default="{ row }">{{ formatTime(row.submitted_at) }}</template></el-table-column><el-table-column label="查看" width="80"><template #default="{ row }"><el-button :icon="Document" circle title="查看志愿表" aria-label="查看志愿表" @click="viewSubmission(row.id)" /></template></el-table-column></el-table>
     </el-dialog>
@@ -133,11 +133,11 @@ async function downloadRun(id) { try { await downloadExcel(`runs/${id}`, `admiss
 async function resetDemo() {
   if (overview.value.mode !== 'DEMO') return
   try {
-    await ElMessageBox.confirm(`当前在线考生 ${online.value ?? '未知'} 人。体验账号、草稿、正式志愿及其投档运行将永久删除，无法恢复。`, '彻底删除体验数据？', { type: 'error', confirmButtonText: '继续确认', cancelButtonText: '取消', closeOnClickModal: false })
-    const { value } = await ElMessageBox.prompt('输入“删除体验数据”确认本次操作。', '最后确认', { inputValidator: text => text === '删除体验数据' || '确认文字不匹配', confirmButtonText: '彻底删除', cancelButtonText: '取消', closeOnClickModal: false })
+    await ElMessageBox.confirm(`当前在线考生 ${online.value ?? '未知'} 人。体验草稿、正式志愿和纯体验投档记录将永久删除，在线体验账号将退出登录。固定的10个账号、密码及成绩保留；旧版非固定体验账号将删除。`, '重置体验记录？', { type: 'error', confirmButtonText: '继续确认', cancelButtonText: '取消', closeOnClickModal: false })
+    const { value } = await ElMessageBox.prompt('输入“删除体验数据”确认本次操作。', '最后确认', { inputValidator: text => text === '删除体验数据' || '确认文字不匹配', confirmButtonText: '确认重置', cancelButtonText: '取消', closeOnClickModal: false })
     busy.value = true
     const data = (await request.post('/admin/workflow/demo-reset', { confirmation: value })).data
-    ElMessage.success(`已删除 ${data.deletedCandidates} 个体验考生及 ${data.deletedRuns} 次运行`)
+    ElMessage.success(`体验记录已重置，保留 ${data.preservedAccounts} 个固定账号，删除 ${data.deletedCandidates} 个旧体验考生及 ${data.deletedRuns} 次运行`)
     await refresh()
   } catch (_) {} finally { busy.value = false }
 }

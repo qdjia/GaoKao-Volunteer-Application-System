@@ -20,7 +20,7 @@ public class AuthSessionStore {
     public Account lockAccountByUsername(String username) {
         List<Account> rows = jdbcTemplate.query(
                 "SELECT id, username, password, role, student_id, account_status, " +
-                        "failed_login_attempts, locked_until, must_change_password " +
+                        "failed_login_attempts, locked_until, must_change_password, demo_slot IS NOT NULL AS permanent_demo " +
                         "FROM sys_user WHERE username = ? FOR UPDATE",
                 (rs, rowNum) -> new Account(
                         rs.getLong("id"),
@@ -31,7 +31,7 @@ public class AuthSessionStore {
                         rs.getString("account_status"),
                         rs.getInt("failed_login_attempts"),
                         toInstant(rs.getTimestamp("locked_until")),
-                        rs.getBoolean("must_change_password")),
+                        rs.getBoolean("must_change_password"), rs.getBoolean("permanent_demo")),
                 username);
         return rows.isEmpty() ? null : rows.get(0);
     }
@@ -39,13 +39,13 @@ public class AuthSessionStore {
     public Account lockAccountById(long userId) {
         List<Account> rows = jdbcTemplate.query(
                 "SELECT id, username, password, role, student_id, account_status, " +
-                        "failed_login_attempts, locked_until, must_change_password " +
+                        "failed_login_attempts, locked_until, must_change_password, demo_slot IS NOT NULL AS permanent_demo " +
                         "FROM sys_user WHERE id = ? FOR UPDATE",
                 (rs, rowNum) -> new Account(
                         rs.getLong("id"), rs.getString("username"), rs.getString("password"),
                         rs.getString("role"), nullableLong(rs.getObject("student_id")),
                         rs.getString("account_status"), rs.getInt("failed_login_attempts"),
-                        toInstant(rs.getTimestamp("locked_until")), rs.getBoolean("must_change_password")),
+                        toInstant(rs.getTimestamp("locked_until")), rs.getBoolean("must_change_password"), rs.getBoolean("permanent_demo")),
                 userId);
         return rows.isEmpty() ? null : rows.get(0);
     }
@@ -115,7 +115,7 @@ public class AuthSessionStore {
     public SessionAccount findActiveSession(UUID sessionId, String tokenHash) {
         List<SessionAccount> rows = jdbcTemplate.query(
                 "SELECT s.session_id, s.audience, s.expires_at, u.id AS user_id, u.username, u.role, " +
-                        "u.student_id, u.account_status, u.must_change_password " +
+                        "u.student_id, u.account_status, u.must_change_password, u.demo_slot IS NOT NULL AS permanent_demo " +
                         "FROM auth_session s JOIN sys_user u ON u.id = s.user_id " +
                         "WHERE s.session_id = ? AND s.token_hash = ? AND s.revoked_at IS NULL " +
                         "AND s.expires_at > CURRENT_TIMESTAMP",
@@ -124,7 +124,7 @@ public class AuthSessionStore {
                         toInstant(rs.getTimestamp("expires_at")), rs.getLong("user_id"),
                         rs.getString("username"), rs.getString("role"),
                         nullableLong(rs.getObject("student_id")), rs.getString("account_status"),
-                        rs.getBoolean("must_change_password")),
+                        rs.getBoolean("must_change_password"), rs.getBoolean("permanent_demo")),
                 sessionId, tokenHash);
         return rows.isEmpty() ? null : rows.get(0);
     }
@@ -157,13 +157,13 @@ public class AuthSessionStore {
 
     public record Account(
             long id, String username, String passwordHash, String role, Long studentId,
-            String status, int failedLoginAttempts, Instant lockedUntil, boolean mustChangePassword
+            String status, int failedLoginAttempts, Instant lockedUntil, boolean mustChangePassword, boolean permanentDemo
     ) {
     }
 
     public record SessionAccount(
             UUID sessionId, String audience, Instant expiresAt, long userId, String username,
-            String role, Long studentId, String status, boolean mustChangePassword
+            String role, Long studentId, String status, boolean mustChangePassword, boolean permanentDemo
     ) {
     }
 

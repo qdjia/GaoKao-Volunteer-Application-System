@@ -200,6 +200,9 @@ class WorkflowIntegrationTest {
 
     @Test void importOriginIsFixedAtCreationAndNotReclassifiedOnOverwrite() {
         var data=excel.template("candidates",true);
+        assertThat(imports.importFile("candidates",batch,operator,data).success()).isFalse();
+        assertThat(count("candidate WHERE data_origin='DEMO'")).isEqualTo(2);
+        admin.resetDemo(operator,"删除体验数据");
         assertThat(imports.importFile("candidates",batch,operator,data).success()).isTrue();
         assertThat(count("candidate WHERE data_origin='DEMO'")).isEqualTo(10);
         properties.setMode(WorkflowProperties.Mode.PRODUCTION);

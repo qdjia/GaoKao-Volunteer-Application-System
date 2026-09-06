@@ -26,6 +26,7 @@ router.beforeEach(async (to, from) => {
   if (!sessionStorage.getItem('token') && store.token) store.logout()
   if (store.token && to.path !== from.path && !(await confirmLeave())) return false
   if (!store.token) return to.path === '/login' ? true : '/login'
+  if (store.permanentDemo && to.path === '/change-password') return home()
   if (store.mustChangePassword && to.path !== '/change-password') return '/change-password'
   if (to.path === '/login' || (to.meta.roles && !to.meta.roles.includes(store.role))) return home()
   return true
