@@ -80,6 +80,34 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  quick-tunnel:
+    image: cloudflare/cloudflared:latest
+    profiles: ["quick-tunnel"]
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --url http://frontend:8081
+    depends_on:
+      frontend:
+        condition: service_healthy
+    networks:
+      - edge
+    security_opt:
+      - no-new-privileges:true
+
+  named-tunnel:
+    image: cloudflare/cloudflared:latest
+    profiles: ["named-tunnel"]
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    depends_on:
+      frontend:
+        condition: service_healthy
+    networks:
+      - edge
+    security_opt:
+      - no-new-privileges:true
+
 networks:
   edge:
   app:

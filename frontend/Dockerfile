@@ -13,4 +13,4 @@ RUN rm /etc/nginx/conf.d/default.conf
 COPY docker/nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /workspace/dist /usr/share/nginx/html
 
-EXPOSE 8080
+EXPOSE 8080 8081

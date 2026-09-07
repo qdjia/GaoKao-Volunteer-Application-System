@@ -22,8 +22,8 @@
 
 ---
 
-> **当前阶段：P1-3.2 已完成，下一模块为 P1-3.3。**
-> 已接通数据导入、志愿填报、手动保存、正式提交、版本打印和投档查询。前后端与 PostgreSQL 已组成健康检查和网络隔离的 Compose 栈；公网入口、桌面启停和停止前备份仍待完成。
+> **当前阶段：P1-3.3 已完成，下一模块为 P1-3.4。**
+> 已接通数据导入、志愿填报、手动保存、正式提交、版本打印和投档查询。Compose 可按需建立只开放考生能力的 Quick Tunnel；桌面启停和停止前备份仍待完成。
 >
 > 本系统仅用于模拟和体验，不代表黑龙江省招生考试院或高校的正式投档、录取结果。
 
@@ -367,9 +367,9 @@ P1-3 将统一重写 Start App、Stop App 和快捷方式：点击启动、停�
 | 集成测试 | Testcontainers PostgreSQL · MockMvc |
 | 当前运行 | Docker Compose：Nginx + Spring Boot + PostgreSQL |
 
-### 公网体验部署目标
+### 公网体验
 
-应用容器化和本机网络隔离已经完成；下图中的公网隧道仍是下一模块。
+应用通过两个彼此独立的 Nginx 入口运行：本机 `8080` 入口供管理员使用，容器内 `8081` 入口只供 Cloudflare Tunnel 使用。后者在反向代理层仅允许考生登录、改密、本人填报、本人结果和本人志愿表导出。
 
 ```mermaid
 flowchart LR
@@ -383,6 +383,23 @@ flowchart LR
 
 基于现有 Windows 电脑、Docker Desktop 与 WSL2 Ubuntu，面向约 10 人短期体验。采用随机 HTTPS 地址，预留未来正式域名；数据库不向公网开放。体验期间电脑需保持开机、联网并关闭自动休眠。
 
+启动短期公网体验：
+
+```powershell
+docker compose --profile quick-tunnel up -d --build --wait
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\show-public-url.ps1
+```
+
+第二条命令会显示 `https://...trycloudflare.com` 考生地址。Quick Tunnel 无需 Cloudflare 账号，但每次重建或重启隧道后地址可能变化，仅适合短期体验。停止时执行 `docker compose --profile quick-tunnel down`；在 P1-3.5 完成前，停止前仍需手工备份数据库。
+
+以后购买域名后，在 Cloudflare 创建远程托管 Tunnel，把令牌写入 `.env` 的 `CLOUDFLARE_TUNNEL_TOKEN`，并在控制台把域名指向 `http://frontend:8081`，然后改用：
+
+```powershell
+docker compose --profile named-tunnel up -d --build --wait
+```
+
+Tunnel 令牌等同于运行凭据，不得提交到 Git、发给体验考生或写入截图。
+
 | 目标流程 | 主要步骤 |
 | :--- | :--- |
 | Start App | 启动 Docker → 启动项目 → 建立隧道 → 打开本机后台 → 显示公网网址 |
@@ -390,7 +407,7 @@ flowchart LR
 
 在线统计已实现每 10 秒心跳、30 秒超时；`GET /api/admin/workflow/online` 要求本机管理员认证，独立 Stop App 尚未接入。关闭浏览器触发全局停止的旧启动脚本仍待替换。
 
-公网代理需要按考生功能配置白名单，不能整段放行 `/api/excel/**`，也不能放行 `/api/admin/**` 或 `/api/admission-runs/**`。在 P1-3 完成前，不将当前 Vite 开发服务作为正式公网入口。
+公网代理已按考生功能使用显式白名单。`/admin`、`/api/admin/**`、`/api/admission-runs/**`、Excel 模板、批量导入和投档结果总表均直接返回 404；Tunnel 容器只加入 `edge` 网络，不能绕过 Nginx 连接后端或数据库。
 
 <details>
 <summary><strong>查看目录结构</strong></summary>
@@ -463,9 +480,9 @@ npm run build
 | P0-4 | 账号、安全与权限 | 已完成 |
 | P1-1 | Excel 导入导出与 10 人体验数据 | 已完成 |
 | P1-2 | 新版志愿编辑、提交、管理流程、体验保护与在线状态 | 已完成 |
-| **P1-3** | **应用 Docker 化、公网隔离、Quick Tunnel、启停与备份** | **下一阶段** |
+| **P1-3** | **应用 Docker 化、公网隔离、Quick Tunnel、启停与备份** | **进行中（1-3 已完成）** |
 
-下一阶段先完成前后端镜像、Compose 健康检查和公网代理白名单，再接入 Quick Tunnel、环境变量注入及独立启停备份，并验证 10 人并发、重启恢复和断网恢复。旧原型表与服务需在备份、依赖核对后另行清理，不能直接删除已有数据。
+下一模块重写 Start App、Stop App 和桌面快捷方式；之后再完成停止前备份与运行恢复验收。旧原型表与服务需在备份、依赖核对后另行清理，不能直接删除已有数据。
 
 详细范围、验收要求和实现记录见 [handoff.md](handoff.md)。
 

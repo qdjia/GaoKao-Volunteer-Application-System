@@ -492,7 +492,7 @@ Cloudflare Quick Tunnel
 
 1. 构建前端和后端镜像。（已完成，2026-09-06）
 2. 建立 PostgreSQL 持久卷、健康检查和网络隔离。（已完成，2026-09-07）
-3. 实现 Quick Tunnel，并预留正式域名配置。
+3. 实现 Quick Tunnel，并预留正式域名配置。（已完成，2026-09-07）
 4. 重写 Start App、Stop App 和桌面快捷方式。
 5. 实现停止前备份、30 份轮转和失败保护。
 6. 验证 10 人并发、重启恢复和断网恢复。
@@ -516,6 +516,15 @@ Cloudflare Quick Tunnel
 - 容器内本机管理请求使用独立 `GAOKAO_PROXY_SECRET`。Nginx 只在请求 Host 为 `localhost` 或 `127.0.0.1` 时添加标识；后端还要求来源为私有容器地址、Host 为回环地址且共享密钥至少32字节。未配置、伪造密钥、公共来源或公网Host均不能获得本机管理权限。
 - `.env.example` 新增代理密钥、HTTP端口和数据目录。Compose 不再为数据库、JWT、代理和管理员密码提供弱默认值，缺失时直接拒绝解析启动。
 - 验收：后端120项测试全部通过，前端生产构建通过；使用独立项目名、临时数据目录及端口启动完整 Compose，PostgreSQL、后端、前端依次达到 healthy，空库迁移至Flyway V7并创建1个管理员。网络成员与设计一致，本机管理员登录返回200，公网Host登录同一管理员返回403，后端无主机端口，前端与PostgreSQL仅绑定127.0.0.1。
+
+#### P1-3.3 Quick Tunnel 与公网白名单
+
+- Compose 新增按 profile 启动的 `quick-tunnel` 与 `named-tunnel` 服务。Quick Tunnel 无需账号并生成随机 `trycloudflare.com` 地址；未来购买域名后可通过 `.env` 中的 `CLOUDFLARE_TUNNEL_TOKEN` 切换到远程托管 Tunnel，不需要改变应用网络结构。
+- Nginx 新增仅在容器网络监听的 `8081` 公网入口。公网只放行 `/api/auth/login`、`info`、`logout`、`change-password`、`/api/candidate/**`、`/api/excel/context` 和当前考生本人志愿表导出；不注入本机代理密钥。
+- `/admin`、其余 `/api/**`、批量导入、模板下载、投档运行和管理员结果导出在公网入口直接返回404。Tunnel 容器只加入 `edge` 网络，无法直接访问后端所在 `app` 网络或 PostgreSQL 所在 `data` 网络。
+- 新增 `scripts/show-public-url.ps1`，从 Quick Tunnel 日志提取当前考生网址。正式 Start/Stop 与桌面快捷方式仍属于 P1-3.4，本模块不改写旧脚本。
+- Quick Tunnel 只用于短期体验：随机地址会变化，没有可用性承诺，当前官方限制为最多200个并发中的请求且不支持SSE。长期使用应切换到带固定域名的远程托管 Tunnel，并保护好 Tunnel 令牌。
+- 验收：前端生产构建通过，四服务临时 Compose 栈全部健康并成功取得真实 HTTPS 地址。公网 `/login` 返回200，未登录的考生与本人导出接口返回401；`/admin`、管理员 API、Excel 模板和投档运行 API 均在 Nginx 层返回404。隧道容器检查确认只加入 `edge` 网络。临时容器、网络和数据库目录已删除。
 
 ## 十一、下一次开始前检查
 
