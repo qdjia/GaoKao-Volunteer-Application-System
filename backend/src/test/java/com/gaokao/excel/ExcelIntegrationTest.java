@@ -266,6 +266,11 @@ class ExcelIntegrationTest {
         mvc.perform(get("/api/excel/templates/candidates")).andExpect(status().isUnauthorized());
     }
 
+    @Test void internalHealthChecksTheDatabaseWithoutAuthentication() throws Exception {
+        mvc.perform(get("/internal/health"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("UP"));
+    }
+
     @Test void generatesDownloadableExperienceFiles() throws Exception {
         Path directory = Path.of("target", "generated-excel");
         Files.createDirectories(directory);

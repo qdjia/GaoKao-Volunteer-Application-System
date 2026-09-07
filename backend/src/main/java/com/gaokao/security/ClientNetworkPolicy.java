@@ -1,6 +1,7 @@
 package com.gaokao.security;
 
 import jakarta.servlet.http.HttpServletRequest;
+import com.gaokao.config.SecurityProperties;
 import org.springframework.stereotype.Component;
 
 import java.net.InetAddress;
@@ -13,14 +14,28 @@ import java.util.Locale;
 
 @Component
 public class ClientNetworkPolicy {
+    private static final String LOCAL_PROXY_HEADER = "X-Gaokao-Local-Proxy";
+    private final byte[] proxySecret;
+
+    public ClientNetworkPolicy(SecurityProperties properties) {
+        String configured = properties.getProxySecret();
+        this.proxySecret = configured == null ? new byte[0] : configured.getBytes(StandardCharsets.UTF_8);
+    }
 
     public ClientContext describe(HttpServletRequest request) {
         String forwardedAddress = forwardedAddress(request);
         String effectiveAddress = forwardedAddress == null ? request.getRemoteAddr() : forwardedAddress;
-        boolean local = isLoopback(effectiveAddress)
+        boolean local = (isLoopback(effectiveAddress)
                 && isLoopback(request.getRemoteAddr())
-                && isLoopback(request.getServerName());
+                && isLoopback(request.getServerName())) || isTrustedLocalProxy(request);
         return new ClientContext(local, hash(effectiveAddress), hash(request.getHeader("User-Agent")));
+    }
+
+    private boolean isTrustedLocalProxy(HttpServletRequest request) {
+        if (proxySecret.length < 32 || !isPrivateAddress(request.getRemoteAddr()) || !isLoopback(request.getServerName()))
+            return false;
+        String supplied = request.getHeader(LOCAL_PROXY_HEADER);
+        return supplied != null && MessageDigest.isEqual(proxySecret, supplied.getBytes(StandardCharsets.UTF_8));
     }
 
     public void requireLocal(HttpServletRequest request) {
@@ -65,6 +80,16 @@ public class ClientNetworkPolicy {
         }
         try {
             return InetAddress.getByName(address).isLoopbackAddress();
+        } catch (UnknownHostException ignored) {
+            return false;
+        }
+    }
+
+    private boolean isPrivateAddress(String address) {
+        if (address == null || address.isBlank()) return false;
+        try {
+            InetAddress parsed = InetAddress.getByName(address);
+            return parsed.isSiteLocalAddress() || parsed.isLinkLocalAddress();
         } catch (UnknownHostException ignored) {
             return false;
         }

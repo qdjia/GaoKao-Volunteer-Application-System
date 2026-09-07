@@ -39,6 +39,7 @@ gaokao:
     notice-version: ${GAOKAO_NOTICE_VERSION:2026-1}
   security:
     jwt-secret: ${GAOKAO_JWT_SECRET:}
+    proxy-secret: ${GAOKAO_PROXY_SECRET:}
     session-duration: 2h
     max-login-attempts: 5
     lock-duration: 15m

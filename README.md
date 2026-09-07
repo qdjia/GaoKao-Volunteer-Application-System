@@ -22,8 +22,8 @@
 
 ---
 
-> **当前阶段：P1-2 已完成，下一阶段为 P1-3。**
-> 已接通数据导入、志愿填报、手动保存、正式提交、版本打印和投档查询。管理员工作台、体验重置保护与在线统计已可用；应用容器化、公网入口和启停备份仍待完成。
+> **当前阶段：P1-3.2 已完成，下一模块为 P1-3.3。**
+> 已接通数据导入、志愿填报、手动保存、正式提交、版本打印和投档查询。前后端与 PostgreSQL 已组成健康检查和网络隔离的 Compose 栈；公网入口、桌面启停和停止前备份仍待完成。
 >
 > 本系统仅用于模拟和体验，不代表黑龙江省招生考试院或高校的正式投档、录取结果。
 
@@ -50,33 +50,31 @@
 
 | 模块 | 已实现 | 当前边界 |
 | :--- | :--- | :--- |
-| 数据库 | PostgreSQL 16、Flyway V1–V6、约束与不可变快照 | 旧原型表暂时保留，H2 已移除 |
+| 数据库 | PostgreSQL 16、Flyway V1–V7、约束与不可变快照 | 旧原型表暂时保留，H2 已移除 |
 | 志愿填报 | 45 个专业组、每组 6 个专业、顺序调整、调剂标志、选科提示 | 手动保存不等于正式提交，截止后不能再保存或提交 |
 | 提交与打印 | 截止前重提、修订冲突保护、幂等请求、版本查看、A4 横向打印 | 考生查看有效版本，管理员审计全部历史版本 |
 | 投档引擎 | 分科队列、完整同分键、控制线、选科过滤、一次投档 | 管理员截止后执行；每次创建新快照，不覆盖旧结果 |
 | 管理工作台 | 填报时间、分科控制线、计划与比例、账号启停、投档运行、操作审计 | 管理操作仅允许本机管理员访问 |
-| 账号安全 | BCrypt、JWT、服务端会话、失败锁定、首次改密、禁用撤销 | 管理员仅限本机访问，反向代理隔离待完成 |
+| 账号安全 | BCrypt、JWT、服务端会话、失败锁定、首次改密、禁用撤销 | 管理员仅限本机；Compose 本机代理使用独立共享密钥 |
 | Excel | 版本化模板、文件选择、事务导入、错误报告、志愿与结果导出 | 只读写新版领域数据 |
-| 体验数据 | 10 名虚构考生及配套计划、DEMO 重置、正式来源保护 | 只删除明确标记的体验记录，混合正式数据的运行禁止重置 |
+| 体验数据 | 固定 10 名虚构考生及配套计划、DEMO 重置、正式来源保护 | 固定账号密码不可修改；重置保留固定账号和成绩 |
 | 在线统计 | 每 10 秒心跳、30 秒超时，包含首次改密页面 | 不延长登录有效期；Stop App 尚未接入 |
-| 页面与部署 | 新版管理端、考生端、手机布局；本机 Java / Vite 可运行 | 完整容器化、公网隔离和新版桌面启停待完成 |
+| 页面与部署 | 新版管理端、考生端、手机布局；三服务 Compose 健康依赖与内部网络 | 当前只绑定本机；公网白名单和新版桌面启停待完成 |
 
-最近一次完整验证：**2026-09-06，108 项后端测试通过，后端打包、前端构建及真实浏览器全流程通过。** 详细验证范围见[构建与验证](#verification)。
+最近一次完整验证：**2026-09-07，120 项后端测试通过，后端打包、前端构建及三服务 Compose 实机验收通过。** 详细验证范围见[构建与验证](#verification)。
 
 <a id="quick-start"></a>
 
 ## 本地启动
 
-当前 PostgreSQL 使用 Docker Compose；后端和前端在本机运行。以下命令均从项目根目录开始执行。
+当前推荐使用 Docker Compose 同时运行前端、后端和 PostgreSQL。以下命令均从项目根目录开始执行。
 
 ### 1. 准备环境
 
 | 工具 | 要求 |
 | :--- | :--- |
-| Java | JDK 17 或更高版本 |
-| Maven | 3.8 或更高版本 |
-| Node.js / npm | Node.js 18+、npm 9+ |
-| Docker Desktop | 已启动；数据库和后端集成测试需要 |
+| Docker Desktop | 必需，使用 Linux 容器并保持运行 |
+| Java / Maven / Node.js | 仅在脱离 Docker 进行本地开发或运行测试时需要 |
 
 ### 2. 设置账号与连接信息
 
@@ -87,36 +85,42 @@
 | `GAOKAO_ADMIN_USERNAME` | 首次创建的管理员用户名 |
 | `GAOKAO_ADMIN_PASSWORD` | 管理员初始密码，12–72 位，包含大小写字母、数字和特殊字符 |
 | `GAOKAO_JWT_SECRET` | 至少 32 字节的随机签名密钥 |
+| `GAOKAO_PROXY_SECRET` | 至少 32 字节，且不能与 JWT 密钥相同；用于识别本机 Compose 前端代理 |
 | `GAOKAO_APP_MODE` | `DEMO` 为体验模式；未配置时后端默认 `PRODUCTION`，禁止体验重置 |
 | `GAOKAO_NOTICE_VERSION` | 模拟用途声明版本，默认 `2026-1`；更新后考生需重新确认 |
 | `GAOKAO_DEMO_DATA_ENABLED` | 旧原型数据初始化开关，保持 `false`；新版体验数据通过 Excel 导入 |
 | `GAOKAO_DB_NAME` | Compose 首次初始化的数据库名称，默认 `gaokao` |
 | `GAOKAO_DB_USERNAME` / `GAOKAO_DB_PASSWORD` | PostgreSQL 用户名与密码 |
 | `GAOKAO_DB_PORT` | Compose 绑定的本机数据库端口，默认 `15432` |
-| `GAOKAO_DB_URL` | 后端数据库地址，默认 `jdbc:postgresql://localhost:15432/gaokao` |
+| `GAOKAO_HTTP_PORT` | 本机网页入口端口，默认 `5173` |
+| `GAOKAO_DATA_DIR` | PostgreSQL 持久化目录，默认 `./data/postgres` |
+| `GAOKAO_DB_URL` | 仅本地 Java 开发使用；Compose 后端自动连接 `postgres:5432` |
 | `GAOKAO_ALLOWED_ORIGINS` | 允许的前端来源，例如 `http://localhost:5173` |
 
-> **当前配置方式**
-> Docker Compose 会读取根目录 `.env`，但当前本地后端启动脚本**尚不会读取该文件**。后端使用的账号、密钥和数据库配置需设置为 Windows 用户环境变量或启动进程环境变量；数据库连接信息应与 Compose 保持一致。
->
-> Windows 设置入口：搜索“编辑系统环境变量” → “环境变量” → “用户变量” → “新建”。设置后需重新打开启动程序并重启后端。
+首次启动先创建本机配置文件，并把所有 `replace_with_...` 替换为自己的强密码或随机密钥：
+
+```powershell
+Copy-Item .env.example .env
+```
+
+`.env` 已被 Git 忽略。数据库密码、JWT 密钥、代理密钥和管理员密码缺少任意一项时，Compose 会直接拒绝启动，不再使用弱默认值。`GAOKAO_JWT_SECRET` 与 `GAOKAO_PROXY_SECRET` 应分别生成，不能相同。
 
 管理员账号已存在时，改变初始化配置不会重置其密码，应登录后使用“修改密码”。未设置 JWT 密钥时，后端会临时生成密钥，重启后已有登录失效；公网体验应配置固定随机密钥。
 
 **体验导入前先确认模式：** 在后端启动环境设置 `GAOKAO_APP_MODE=DEMO`，重启后确认管理工作台显示“体验模式”，再导入虚构数据。只修改 `.env` 不会改变当前本地后端的模式。`PRODUCTION` 是数据保护模式，不代表公网部署已经完成。
 
-### 3. 启动数据库
+### 3. 启动完整应用
 
 ```powershell
-docker compose up -d postgres
+docker compose up -d --build --wait
 docker compose ps
 ```
 
-PostgreSQL 默认仅监听 `127.0.0.1:15432`，数据存放于 `data/postgres/`。后端首次连接空库时会自动执行 Flyway 迁移；调整数据库名称或端口时，同步设置后端的 `GAOKAO_DB_URL`。
+首次构建需要下载 Java、Node 和 Nginx 基础镜像，之后会复用缓存。`docker compose ps` 中三个服务均为 `healthy` 后，打开 [http://localhost:5173](http://localhost:5173)。后端首次连接空库会自动执行 Flyway 迁移。
 
-首次连接前确认 `docker compose ps` 中数据库状态为 `healthy`。已有数据目录不会因为修改初始化环境变量而自动重设数据库账号密码；不要通过删除 `data/postgres/` 解决连接问题。
+PostgreSQL 默认只监听 `127.0.0.1:15432`，网页只监听 `127.0.0.1:5173`，后端不发布主机端口。数据默认存放于 `data/postgres/`。已有数据目录不会因为修改初始化环境变量而自动重设数据库账号密码；不要通过删除数据目录解决连接问题。
 
-### 4. 启动应用
+### 4. 本地源码开发（可选）
 
 首次使用先安装前端依赖并构建后端：
 
@@ -125,9 +129,10 @@ npm --prefix frontend install
 mvn -f .\backend\pom.xml -DskipTests package
 ```
 
-随后启动后端和前端：
+需要直接调试源码时，才使用本地后端和 Vite 脚本。先只启动数据库，并确保完整 Compose 应用没有占用相同端口：
 
 ```powershell
+docker compose up -d postgres
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\start-backend.ps1
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\start-frontend.ps1
 ```
@@ -139,9 +144,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\start-frontend
 | 考生填报 | [http://localhost:5173/application](http://localhost:5173/application) |
 | 本人投档结果 | [http://localhost:5173/results](http://localhost:5173/results) |
 | Excel 管理页面 | [http://localhost:5173/excel](http://localhost:5173/excel) |
-| 后端 | `http://localhost:8080` |
+| 后端 | 仅 Compose 内部 `backend:8080`，不对主机发布 |
 | 数据库 | `127.0.0.1:15432` |
-| 后端日志 | `logs/backend.log` |
+| 容器日志 | `docker compose logs backend` |
 
 登录后会按角色进入管理工作台或考生填报页。更新后端代码后需重新打包并重启；现有脚本会复用已存在的 JAR，不会自动检测源码变化。Windows 下重新打包前应停止占用该 JAR 的后端进程。
 
@@ -360,11 +365,11 @@ P1-3 将统一重写 Start App、Stop App 和快捷方式：点击启动、停�
 | 数据库 | PostgreSQL 16 · Flyway |
 | 数据处理 | Apache POI · EasyExcel |
 | 集成测试 | Testcontainers PostgreSQL · MockMvc |
-| 当前运行 | Docker Compose 数据库 + 本地 Java / Vite |
+| 当前运行 | Docker Compose：Nginx + Spring Boot + PostgreSQL |
 
 ### 公网体验部署目标
 
-下面是后续部署方案，当前尚未完成公网入口与应用容器化。
+应用容器化和本机网络隔离已经完成；下图中的公网隧道仍是下一模块。
 
 ```mermaid
 flowchart LR

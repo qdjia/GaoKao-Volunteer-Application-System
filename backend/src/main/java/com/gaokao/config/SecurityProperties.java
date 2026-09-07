@@ -11,6 +11,7 @@ import java.util.List;
 @ConfigurationProperties(prefix = "gaokao.security")
 public class SecurityProperties {
     private String jwtSecret;
+    private String proxySecret;
     private Duration sessionDuration = Duration.ofHours(2);
     private int maxLoginAttempts = 5;
     private Duration lockDuration = Duration.ofMinutes(15);
@@ -24,6 +25,14 @@ public class SecurityProperties {
 
     public void setJwtSecret(String jwtSecret) {
         this.jwtSecret = jwtSecret;
+    }
+
+    public String getProxySecret() {
+        return proxySecret;
+    }
+
+    public void setProxySecret(String proxySecret) {
+        this.proxySecret = proxySecret;
     }
 
     public Duration getSessionDuration() {

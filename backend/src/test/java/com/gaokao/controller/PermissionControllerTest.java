@@ -52,7 +52,7 @@ class PermissionControllerTest {
                 2L, "2024001", "STUDENT", 1L, UUID.randomUUID(), "PUBLIC_CANDIDATE", false, false));
         mockMvc = MockMvcBuilders.standaloneSetup(admissionController, applicationController, studentController)
                 .setControllerAdvice(new GlobalExceptionHandler())
-                .addInterceptors(new AuthInterceptor(authTokenService, new ClientNetworkPolicy()))
+                .addInterceptors(new AuthInterceptor(authTokenService, new ClientNetworkPolicy(new com.gaokao.config.SecurityProperties())))
                 .build();
     }
 

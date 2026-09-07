@@ -491,7 +491,7 @@ Cloudflare Quick Tunnel
 ### P1-3 Docker 与公网体验
 
 1. 构建前端和后端镜像。（已完成，2026-09-06）
-2. 建立 PostgreSQL 持久卷、健康检查和网络隔离。
+2. 建立 PostgreSQL 持久卷、健康检查和网络隔离。（已完成，2026-09-07）
 3. 实现 Quick Tunnel，并预留正式域名配置。
 4. 重写 Start App、Stop App 和桌面快捷方式。
 5. 实现停止前备份、30 份轮转和失败保护。
@@ -506,6 +506,16 @@ Cloudflare Quick Tunnel
 - 本项只交付可构建镜像，不代表已经形成可公网运行的容器栈。Compose 应用服务、PostgreSQL 持久卷、健康依赖、内部网络和公网 API 白名单属于 P1-3.2，完成前不能把前端容器直接暴露到公网。
 - 实机验收：Docker Desktop 29.6.2 成功构建 `gaokao-backend:p1-3.1` 和 `gaokao-frontend:p1-3.1`。后端镜像以非 root 的 `gaokao` 用户启动，并连接现有 PostgreSQL 完成 Flyway V7 校验；前端 `/container-health`、`/login` 和 Vue 深层路由 `/application` 均返回 200。验收使用的临时容器和网络已移除，现有本机服务及数据库未停止、未重置。
 - 首次拉取 Dockerfile 语法镜像时，本机配置的阿里云镜像源返回403；Dockerfile 已取消不必要的外部 syntax 镜像依赖。官方基础镜像随后拉取成功。前端构建仍有既存大分包提示，并报告依赖审计问题，依赖升级应单独评估，未在本模块越界修改版本。
+
+#### P1-3.2 Compose、健康检查与网络隔离
+
+- Compose 现包含 PostgreSQL、后端和前端三个服务。PostgreSQL 健康后才启动后端，后端数据库健康探针通过后才启动前端，避免应用在依赖未就绪时反复失败。
+- 数据仍持久化到 `${GAOKAO_DATA_DIR:-./data/postgres}`。数据库端口只绑定 `127.0.0.1` 供本机维护，后端不映射任何主机端口，前端入口只绑定 `127.0.0.1:${GAOKAO_HTTP_PORT:-5173}`；本模块完成后仍未开放公网。
+- 网络分为 `edge`、内部 `app` 和内部 `data`：前端不能直接连接数据库，PostgreSQL不能连接前端，只有后端同时加入应用网和数据网。三个服务均启用 `no-new-privileges`。
+- 后端新增 `/internal/health`，执行 `SELECT 1` 同时确认应用与数据库可用。该路径不经过前端 `/api/` 代理，仅供容器内部健康检查。
+- 容器内本机管理请求使用独立 `GAOKAO_PROXY_SECRET`。Nginx 只在请求 Host 为 `localhost` 或 `127.0.0.1` 时添加标识；后端还要求来源为私有容器地址、Host 为回环地址且共享密钥至少32字节。未配置、伪造密钥、公共来源或公网Host均不能获得本机管理权限。
+- `.env.example` 新增代理密钥、HTTP端口和数据目录。Compose 不再为数据库、JWT、代理和管理员密码提供弱默认值，缺失时直接拒绝解析启动。
+- 验收：后端120项测试全部通过，前端生产构建通过；使用独立项目名、临时数据目录及端口启动完整 Compose，PostgreSQL、后端、前端依次达到 healthy，空库迁移至Flyway V7并创建1个管理员。网络成员与设计一致，本机管理员登录返回200，公网Host登录同一管理员返回403，后端无主机端口，前端与PostgreSQL仅绑定127.0.0.1。
 
 ## 十一、下一次开始前检查
 

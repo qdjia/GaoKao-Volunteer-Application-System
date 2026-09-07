@@ -1,21 +1,88 @@
-name: gaokao-dev
+name: gaokao
 
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: gaokao-postgres
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${GAOKAO_DB_NAME:-gaokao}
       POSTGRES_USER: ${GAOKAO_DB_USERNAME:-gaokao}
-      POSTGRES_PASSWORD: ${GAOKAO_DB_PASSWORD:-gaokao_dev_password}
+      POSTGRES_PASSWORD: ${GAOKAO_DB_PASSWORD:?请在.env中设置GAOKAO_DB_PASSWORD}
     ports:
       - "127.0.0.1:${GAOKAO_DB_PORT:-15432}:5432"
     volumes:
-      - ./data/postgres:/var/lib/postgresql/data
+      - ${GAOKAO_DATA_DIR:-./data/postgres}:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${GAOKAO_DB_USERNAME:-gaokao} -d ${GAOKAO_DB_NAME:-gaokao}"]
       interval: 5s
       timeout: 5s
       retries: 12
       start_period: 10s
+    networks:
+      - data
+    security_opt:
+      - no-new-privileges:true
+
+  backend:
+    build:
+      context: ./backend
+    image: gaokao-backend:local
+    restart: unless-stopped
+    environment:
+      GAOKAO_DB_URL: jdbc:postgresql://postgres:5432/${GAOKAO_DB_NAME:-gaokao}
+      GAOKAO_DB_USERNAME: ${GAOKAO_DB_USERNAME:-gaokao}
+      GAOKAO_DB_PASSWORD: ${GAOKAO_DB_PASSWORD:?请在.env中设置GAOKAO_DB_PASSWORD}
+      GAOKAO_APP_MODE: ${GAOKAO_APP_MODE:-DEMO}
+      GAOKAO_NOTICE_VERSION: ${GAOKAO_NOTICE_VERSION:-2026-1}
+      GAOKAO_DEMO_DATA_ENABLED: "false"
+      GAOKAO_JWT_SECRET: ${GAOKAO_JWT_SECRET:?请在.env中设置至少32字节的GAOKAO_JWT_SECRET}
+      GAOKAO_PROXY_SECRET: ${GAOKAO_PROXY_SECRET:?请在.env中设置至少32字节的GAOKAO_PROXY_SECRET}
+      GAOKAO_ADMIN_USERNAME: ${GAOKAO_ADMIN_USERNAME:?请在.env中设置GAOKAO_ADMIN_USERNAME}
+      GAOKAO_ADMIN_PASSWORD: ${GAOKAO_ADMIN_PASSWORD:?请在.env中设置强GAOKAO_ADMIN_PASSWORD}
+      GAOKAO_ALLOWED_ORIGINS: http://localhost:${GAOKAO_HTTP_PORT:-5173},http://127.0.0.1:${GAOKAO_HTTP_PORT:-5173}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:8080/internal/health | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks:
+      - app
+      - data
+    security_opt:
+      - no-new-privileges:true
+
+  frontend:
+    build:
+      context: ./frontend
+    image: gaokao-frontend:local
+    restart: unless-stopped
+    environment:
+      GAOKAO_PROXY_SECRET: ${GAOKAO_PROXY_SECRET:?请在.env中设置至少32字节的GAOKAO_PROXY_SECRET}
+      NGINX_ENVSUBST_FILTER: ^GAOKAO_PROXY_SECRET$
+    ports:
+      - "127.0.0.1:${GAOKAO_HTTP_PORT:-5173}:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:8080/container-health | grep -q '^ok$'"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+    networks:
+      - edge
+      - app
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  edge:
+  app:
+    internal: true
+  data:
+    internal: true
