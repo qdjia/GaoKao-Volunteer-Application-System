@@ -493,7 +493,7 @@ Cloudflare Quick Tunnel
 1. 构建前端和后端镜像。（已完成，2026-09-06）
 2. 建立 PostgreSQL 持久卷、健康检查和网络隔离。（已完成，2026-09-07）
 3. 实现 Quick Tunnel，并预留正式域名配置。（已完成，2026-09-07）
-4. 重写 Start App、Stop App 和桌面快捷方式。
+4. 重写 Start App、Stop App 和桌面快捷方式。（已完成，2026-09-07）
 5. 实现停止前备份、30 份轮转和失败保护。
 6. 验证 10 人并发、重启恢复和断网恢复。
 
@@ -525,6 +525,15 @@ Cloudflare Quick Tunnel
 - 新增 `scripts/show-public-url.ps1`，从 Quick Tunnel 日志提取当前考生网址。正式 Start/Stop 与桌面快捷方式仍属于 P1-3.4，本模块不改写旧脚本。
 - Quick Tunnel 只用于短期体验：随机地址会变化，没有可用性承诺，当前官方限制为最多200个并发中的请求且不支持SSE。长期使用应切换到带固定域名的远程托管 Tunnel，并保护好 Tunnel 令牌。
 - 验收：前端生产构建通过，四服务临时 Compose 栈全部健康并成功取得真实 HTTPS 地址。公网 `/login` 返回200，未登录的考生与本人导出接口返回401；`/admin`、管理员 API、Excel 模板和投档运行 API 均在 Nginx 层返回404。隧道容器检查确认只加入 `edge` 网络。临时容器、网络和数据库目录已删除。
+
+#### P1-3.4 Start App、Stop App 与桌面快捷方式
+
+- `start-app.ps1` 改为 Compose 总入口：检查 `.env` 与 Docker CLI，必要时启动 Docker Desktop并等待Engine就绪，校验Compose配置，按模式启动Quick、Named或无隧道栈，等待健康后提取临时公网地址并打开本机管理后台。
+- 启动提示窗口和浏览器退出均不再停止服务。旧 `start-app-session.ps1` 只保留为兼容转发入口；Java/Vite 单独启停脚本继续仅供源码开发使用。
+- 新增 `stop-app.ps1`：使用管理员账号密码建立本机管理会话，读取实时在线人数；有人在线时要求两次输入 `STOP`，无人在线时确认一次。随后先停Quick/Named Tunnel，再正常执行Compose down，并默认调用Docker Desktop停止命令；可用 `-KeepDockerDesktop` 保持Docker运行。
+- 停止脚本建立的管理员会话遵循单设备登录规则，因此取消停止后，原浏览器管理员会话可能需要重新登录。无法验证管理员、无法取得在线人数或Compose停止失败时不会继续静默关机。
+- 快捷方式安装脚本现在只创建 `Gaokao - Start` 与 `Gaokao - Stop`，并清理三个旧英文快捷方式。项目不创建开机自启动任务，旧的安装/卸载开机任务脚本已删除。
+- P1-3.5尚未实现，所以当前Stop App只正常关闭并保留PostgreSQL持久化目录，同时明确警告没有生成独立备份；不得将这一状态用于正式数据的安全停机验收。
 
 ## 十一、下一次开始前检查
 
